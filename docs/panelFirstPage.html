@@ -338,8 +338,72 @@
     </div>
 
     <script>
+        // Function to load and display cases
+        function loadCases() {
+            const cases = JSON.parse(localStorage.getItem('cases') || '[]');
+            const mainContent = document.querySelector('main .max-w-md');
+            
+            // Clear existing content
+            mainContent.innerHTML = '';
+            
+            if (cases.length === 0) {
+                mainContent.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        هیچ پرونده‌ای ثبت نشده است
+                    </div>
+                `;
+                return;
+            }
+            
+            // Display each case
+            cases.forEach(caseItem => {
+                const caseCard = `
+                    <div class="bg-white overflow-hidden mt-4 border border-gray-200 rounded-[12px]">
+                        <div class="p-4 border-b border-gray-200">
+                            <h1 class="text-lg text-gray-800">${caseItem.title} | ${caseItem.type}</h1>
+                        </div>
+                        <div class="p-4">
+                            <div class="grid grid-cols-12 gap-4 mb-4">
+                                <div class="col-span-3 text-center">
+                                    <div class="text-sm text-gray-500">آخرین پیگیری</div>
+                                    <div class="text-base mt-1">${new Date(caseItem.lastUpdate).toLocaleDateString('fa-IR')}</div>
+                                </div>
+                                <div class="col-span-6 text-center">
+                                    <div class="text-sm text-gray-500">وکیل</div>
+                                    <div class="text-base mt-1">${caseItem.lawyerName}</div>
+                                </div>
+                                <div class="col-span-3 text-center">
+                                    <div class="text-sm text-gray-500">وضعیت پرونده</div>
+                                    <div class="text-base mt-1">${caseItem.status}</div>
+                                </div>
+                            </div>
+                            <button 
+                                onclick="viewCaseDetails('${caseItem.id}')" 
+                                class="w-full py-2 px-4 bg-black hover:bg-gray-800 text-white rounded-[12px] transition duration-200 active:underline"
+                            >
+                                اطلاعات بیشتر
+                            </button>
+                        </div>
+                    </div>
+                `;
+                mainContent.innerHTML += caseCard;
+            });
+        }
+
         // Check if user is logged in
-        if (!localStorage.getItem('isLoggedIn')) {
+        window.onload = function() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (!isLoggedIn) {
+                window.location.href = 'loginPage.html';
+            } else {
+                loadCases();
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userPhone');
             window.location.href = 'loginPage.html';
         }
 
@@ -356,76 +420,6 @@
                 usernameElement.textContent = 'علی رحیمی';
                 phoneElement.textContent = '09128434782';
             }
-        }
-
-        // Load cases from localStorage
-        function loadCases() {
-            const userPhone = localStorage.getItem('userPhone');
-            const cases = JSON.parse(localStorage.getItem(`cases_${userPhone}`) || '[]');
-            const mainContent = document.querySelector('main .max-w-md');
-            
-            if (cases.length === 0) {
-                mainContent.innerHTML = '<div class="h-[calc(100vh-4rem)] flex items-center justify-center"><p class="text-lg text-gray-500">هنوز پرونده ای ثبت نشده!</p></div>';
-                return;
-            }
-            
-            // Clear existing content
-            mainContent.innerHTML = '';
-            
-            // Display cases in reverse order (newest first)
-            cases.slice().reverse().forEach(caseItem => {
-                const caseHTML = `
-                    <div class="bg-white overflow-hidden mt-4 border border-gray-200 rounded-[12px]">
-                        <!-- Card Header -->
-                        <div class="p-4 border-b border-gray-200">
-                            <h1 class="text-lg text-gray-800">${caseItem.title}</h1>
-                        </div>
-                        
-                        <!-- Card Content -->
-                        <div class="p-4">
-                            <div class="grid grid-cols-12 gap-4 mb-4">
-                                <!-- Last Update -->
-                                <div class="col-span-3 text-center">
-                                    <div class="text-sm text-gray-500">آخرین پیگیری</div>
-                                    <div class="text-base mt-1">${caseItem.lastUpdate || 'بدون پیگیری'}</div>
-                                </div>
-                                
-                                <!-- Lawyer Name -->
-                                <div class="col-span-6 text-center">
-                                    <div class="text-sm text-gray-500">وکیل</div>
-                                    <div class="text-base mt-1">${caseItem.lawyerName || '-'}</div>
-                                </div>
-                                
-                                <!-- Project Status -->
-                                <div class="col-span-3 text-center">
-                                    <div class="text-sm text-gray-500">وضعیت پرونده</div>
-                                    <div class="text-base mt-1">${getStatusText(caseItem.status)}</div>
-                                </div>
-                            </div>
-                            
-                            <!-- View More Button -->
-                            <button 
-                                onclick="viewCaseDetails('${caseItem.id}')" 
-                                class="w-full py-2 px-4 bg-black hover:bg-gray-800 text-white rounded-[12px] transition duration-200 active:underline"
-                            >
-                                اطلاعات بیشتر
-                            </button>
-                        </div>
-                    </div>
-                `;
-                mainContent.insertAdjacentHTML('beforeend', caseHTML);
-            });
-        }
-
-        // Helper function to convert status value to display text
-        function getStatusText(status) {
-            const statusMap = {
-                'initial-review': 'بررسی اولیه',
-                'contract': 'عقد قرارداد',
-                'defense': 'دفاعیه',
-                'final': 'اتمام'
-            };
-            return statusMap[status] || status;
         }
 
         // View case details
@@ -478,23 +472,12 @@
             }
         }
 
-        // Logout
-        function logout() {
-            toggleLogoutOverlay();
-        }
-
         // Confirm logout
         function confirmLogout() {
             localStorage.removeItem('isLoggedIn');
             localStorage.removeItem('userPhone');
             window.location.href = 'loginPage.html';
         }
-
-        // Load cases when page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            updateUserInfo();
-            loadCases();
-        });
 
         function toggleOverlay() {
             const overlay = document.getElementById('overlay');
