@@ -314,7 +314,7 @@
     </div>
 
     <!-- Logout Confirmation Overlay -->
-    <div id="logoutOverlay" class="fixed inset-0 bg-black bg-opacity-0 hidden transition-all duration-500" onclick="handleOverlayClick(event)">
+    <div id="logoutOverlay" class="fixed inset-0 bg-black bg-opacity-0 hidden transition-all duration-500">
         <div id="logoutOverlayContent" class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-[12px] transform translate-y-[100vh] transition-all duration-500">
             <div class="p-6">
                 <h2 class="text-xl font-bold mb-4 text-center">خروج از حساب کاربری</h2>
@@ -345,23 +345,21 @@
         }
 
         // Update user info in header
-        document.querySelector('.text-gray-600').textContent = 'نام کاربری';
-        document.querySelector('.text-gray-500').textContent = userPhone;
+        const usernameElement = document.querySelector('.text-gray-600');
+        const phoneElement = document.querySelector('.text-gray-500');
 
-        // Function to load cases from server
-        async function loadCases() {
-            try {
-                const response = await fetch(`http://localhost:3000/api/cases/${userPhone}`);
-                if (!response.ok) {
-                    throw new Error('Failed to load cases');
-                }
-                
-                const cases = await response.json();
-                displayCases(cases);
-            } catch (error) {
-                console.error('Error loading cases:', error);
-                alert('خطا در بارگذاری پرونده‌ها. لطفا دوباره تلاش کنید.');
-            }
+        if (userPhone === '09128434782') {
+            usernameElement.textContent = 'علی رحیمی';
+        } else if (userPhone === '09127228972') {
+            usernameElement.textContent = 'نبی رحیمی';
+        }
+        phoneElement.textContent = userPhone;
+
+        // Function to load cases from localStorage
+        function loadCases() {
+            const userPhone = localStorage.getItem('userPhone');
+            const cases = JSON.parse(localStorage.getItem(`cases_${userPhone}`) || '[]');
+            displayCases(cases);
         }
 
         // Function to display cases
@@ -371,28 +369,50 @@
 
             if (cases.length === 0) {
                 container.innerHTML = `
-                    <div class="text-center text-gray-500 mt-8">
-                        هنوز پرونده‌ای ثبت نشده است
+                    <div class="flex items-center justify-center h-[calc(100vh-4rem)]">
+                        <div class="text-center text-gray-500">
+                            هنوز پرونده‌ای ثبت نشده است
+                        </div>
                     </div>
                 `;
                 return;
             }
 
-            cases.forEach(caseItem => {
+            // Sort cases by creation date (newest first)
+            cases.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            // Status mapping
+            const statusMap = {
+                'initial-review': 'بررسی اولیه',
+                'contract': 'عقد قرارداد',
+                'defense': 'دفاعیه',
+                'final': 'اتمام'
+            };
+
+            cases.forEach((caseItem, index) => {
+                const caseNumber = index + 1; // Start numbering from 1 for the first case
+                const lawyerName = caseItem.lawyerName || 'نامشخص';
+                const contractAmount = caseItem.contractAmount ? `${caseItem.contractAmount} میلیون` : 'نامشخص';
+                const status = statusMap[caseItem.status] || 'نامشخص';
+
                 const caseElement = `
                     <div class="bg-white overflow-hidden mt-4 border border-gray-200 rounded-[12px]">
                         <div class="p-4 border-b border-gray-200">
-                            <h1 class="text-lg text-gray-800">${caseItem.title}</h1>
+                            <h1 class="text-lg text-gray-800">${caseNumber}. ${caseItem.title}</h1>
                         </div>
                         <div class="p-4">
                             <div class="grid grid-cols-12 gap-4 mb-4">
-                                <div class="col-span-6 text-center">
-                                    <div class="text-sm text-gray-500">وکیل</div>
-                                    <div class="text-base mt-1">${caseItem.lawyer}</div>
+                                <div class="col-span-4 text-center">
+                                    <div class="text-sm text-gray-500">نام وکیل</div>
+                                    <div class="text-base mt-1">${lawyerName}</div>
                                 </div>
-                                <div class="col-span-6 text-center">
+                                <div class="col-span-4 text-center">
                                     <div class="text-sm text-gray-500">مبلغ قرارداد</div>
-                                    <div class="text-base mt-1">${caseItem.contractAmount} میلیون</div>
+                                    <div class="text-base mt-1">${contractAmount}</div>
+                                </div>
+                                <div class="col-span-4 text-center">
+                                    <div class="text-sm text-gray-500">وضعیت پرونده</div>
+                                    <div class="text-base mt-1">${status}</div>
                                 </div>
                             </div>
                             <button 
@@ -412,14 +432,61 @@
         loadCases();
 
         function logout() {
+            toggleLogoutOverlay();
+        }
+
+        function toggleLogoutOverlay() {
+            const overlay = document.getElementById('logoutOverlay');
+            const overlayContent = document.getElementById('logoutOverlayContent');
+            
+            if (overlay.classList.contains('hidden')) {
+                // Show overlay
+                overlay.classList.remove('hidden');
+                // Trigger reflow
+                overlay.offsetHeight;
+                // Add opacity
+                overlay.classList.add('bg-opacity-50');
+                // Slide in content
+                overlayContent.classList.remove('translate-y-[100vh]');
+            } else {
+                // Slide out content
+                overlayContent.classList.add('translate-y-[100vh]');
+                // Remove opacity
+                overlay.classList.remove('bg-opacity-50');
+                // Hide overlay after transition
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 500);
+            }
+        }
+
+        function confirmLogout() {
             localStorage.removeItem('isLoggedIn');
             localStorage.removeItem('userPhone');
             window.location.href = 'loginPage.html';
         }
 
         function viewCaseDetails(caseId) {
-            // Implement case details view
-            console.log('View case:', caseId);
+            // Store the case ID in localStorage
+            localStorage.setItem('currentCaseId', caseId);
+            // Redirect to addCase.html for editing
+            window.location.href = 'addCase.html';
+        }
+
+        function addNewCase() {
+            // Clear any existing case data from localStorage
+            localStorage.removeItem('currentCaseId');
+            localStorage.removeItem('caseTitle');
+            localStorage.removeItem('lawyerName');
+            localStorage.removeItem('contractAmount');
+            localStorage.removeItem('percentage');
+            localStorage.removeItem('status');
+            localStorage.removeItem('trackings');
+            localStorage.removeItem('received');
+            localStorage.removeItem('files');
+            
+            // Navigate to addCase.html
+            window.location.href = 'addCase.html';
         }
 
         function toggleOverlay() {
@@ -489,15 +556,11 @@
         }
 
         // Handle click outside overlay
-        function handleOverlayClick(event) {
-            const overlay = document.getElementById('logoutOverlay');
-            const overlayContent = document.getElementById('logoutOverlayContent');
-            
-            // Check if the click was on the overlay background (not the content)
-            if (event.target === overlay) {
+        document.getElementById('logoutOverlay').addEventListener('click', function(event) {
+            if (event.target === this) {
                 toggleLogoutOverlay();
             }
-        }
+        });
     </script>
 </body>
 </html>
