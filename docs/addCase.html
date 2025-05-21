@@ -491,6 +491,30 @@
         </div>
     </div>
 
+    <!-- Delete Case Confirmation Overlay -->
+    <div id="deleteCaseOverlay" class="fixed inset-0 bg-black bg-opacity-0 hidden transition-all duration-500" onclick="handleDeleteOverlayClick(event)">
+        <div id="deleteCaseOverlayContent" class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-[12px] transform translate-y-[100vh] transition-all duration-500">
+            <div class="p-6">
+                <h2 class="text-xl font-bold mb-4 text-center">حذف پرونده</h2>
+                <p class="text-gray-600 text-center mb-6">آیا از حذف این پرونده اطمینان دارید؟</p>
+                <div class="flex space-x-4 space-x-reverse">
+                    <button 
+                        onclick="confirmDeleteCase()" 
+                        class="flex-1 py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-[12px] transition duration-200"
+                    >
+                        بله، حذف
+                    </button>
+                    <button 
+                        onclick="toggleDeleteCaseOverlay()" 
+                        class="flex-1 py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-[12px] transition duration-200"
+                    >
+                        انصراف
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Include Material Persian Date Picker -->
     <link rel="stylesheet" href="https://unpkg.com/@material/persian-datepicker@latest/dist/css/persian-datepicker.min.css">
     <script src="https://unpkg.com/@material/persian-date@latest/dist/persian-date.min.js"></script>
@@ -502,6 +526,17 @@
         if (!userPhone) {
             window.location.href = 'loginPage.html';
         }
+
+        // Update user info in header
+        const usernameElement = document.querySelector('.flex.flex-col span:first-child');
+        const phoneElement = document.querySelector('.flex.flex-col span:last-child');
+
+        if (userPhone === '09128434782') {
+            usernameElement.textContent = 'علی رحیمی';
+        } else if (userPhone === '09127228972') {
+            usernameElement.textContent = 'نبی رحیمی';
+        }
+        phoneElement.textContent = userPhone;
 
         // Function to save case to server
         async function saveCase(caseData) {
@@ -527,41 +562,94 @@
         }
 
         // Handle form submission
-        document.getElementById('caseForm').addEventListener('submit', async function(e) {
+        document.getElementById('caseForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
+            // Get form values
+            const title = document.getElementById('caseTitle').value;
+            const lawyerName = document.getElementById('lawyerName').value;
+            const contractAmount = document.getElementById('contractAmount').value;
+            const percentage = document.getElementById('percentage').value;
+            const status = document.querySelector('input[name="status"]:checked')?.value || 'initial-review';
+            
+            // Get tracking list items
+            const trackingItems = Array.from(document.querySelectorAll('#trackingList .bg-white')).map(item => ({
+                id: item.id.split('-')[1],
+                date: item.querySelector('span').textContent,
+                description: item.querySelector('p').textContent
+            }));
+            
+            // Get received list items
+            const receivedItems = Array.from(document.querySelectorAll('#receivedList .bg-white')).map(item => ({
+                id: item.id.split('-')[1],
+                date: item.querySelector('span').textContent,
+                amount: item.querySelector('p').textContent.split(': ')[1].split(' ')[0]
+            }));
+            
+            // Get files list
+            const files = Array.from(document.querySelectorAll('#filesList .bg-white')).map(item => {
+                const fileId = item.id.split('-')[1];
+                const savedFiles = JSON.parse(localStorage.getItem('files') || '[]');
+                return savedFiles.find(f => f.id.toString() === fileId);
+            }).filter(Boolean);
+
+            // Get the last tracking date if available
+            const lastUpdate = trackingItems.length > 0 ? trackingItems[0].date : 'بدون پیگیری';
+
+            // Create case object
             const caseData = {
-                title: document.getElementById('caseTitle').value,
-                lawyer: document.getElementById('lawyerName').value,
-                contractAmount: document.getElementById('contractAmount').value,
-                percentage: document.getElementById('percentage').value,
-                trackings: savedTrackings,
-                received: savedReceived,
-                files: savedFiles,
-                status: document.querySelector('input[name="status"]:checked')?.value || 'initial-review',
-                lastUpdate: new Date().toISOString()
+                id: Date.now().toString(), // Generate unique ID
+                title,
+                lawyerName,
+                contractAmount,
+                percentage,
+                status,
+                trackingItems,
+                receivedItems,
+                files,
+                lastUpdate,
+                createdAt: new Date().toISOString()
             };
 
-            try {
-                const response = await fetch(`http://localhost:3000/api/cases/${userPhone}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(caseData)
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to save case');
+            // Get user's phone number
+            const userPhone = localStorage.getItem('userPhone');
+            
+            // Get existing cases for this user
+            const cases = JSON.parse(localStorage.getItem(`cases_${userPhone}`) || '[]');
+            
+            // Check if we're editing an existing case
+            const currentCaseId = localStorage.getItem('currentCaseId');
+            if (currentCaseId) {
+                // Update existing case
+                const caseIndex = cases.findIndex(c => c.id === currentCaseId);
+                if (caseIndex !== -1) {
+                    cases[caseIndex] = { ...cases[caseIndex], ...caseData };
                 }
-                
-                alert('پرونده با موفقیت ذخیره شد');
-                window.location.href = 'panelFirstPage.html';
-            } catch (error) {
-                console.error('Error:', error);
-                alert('خطا در ذخیره پرونده. لطفا دوباره تلاش کنید.');
+            } else {
+                // Add new case at the beginning of the array
+                cases.unshift(caseData);
             }
+
+            // Save to localStorage with user-specific key
+            localStorage.setItem(`cases_${userPhone}`, JSON.stringify(cases));
+            
+            // Clear all related data
+            localStorage.removeItem('currentCaseId');
+            localStorage.removeItem('caseTitle');
+            localStorage.removeItem('lawyerName');
+            localStorage.removeItem('contractAmount');
+            localStorage.removeItem('percentage');
+            localStorage.removeItem('status');
+            localStorage.removeItem('trackings');
+            localStorage.removeItem('received');
+            localStorage.removeItem('files');
+            
+            // Redirect to panel first page
+            window.location.href = 'panelFirstPage.html';
         });
+
+        // Remove the duplicate event listener
+        document.getElementById('caseForm').removeEventListener('submit', validateAndSubmit);
 
         function logout() {
             localStorage.removeItem('isLoggedIn');
@@ -859,211 +947,57 @@
             const userPhone = localStorage.getItem('userPhone');
             
             if (currentCaseId) {
+                // Get cases from localStorage
                 const cases = JSON.parse(localStorage.getItem(`cases_${userPhone}`) || '[]');
                 const caseData = cases.find(c => c.id === currentCaseId);
                 
                 if (caseData) {
-                    // Load basic case data
-                    document.getElementById('caseTitle').value = caseData.title || '';
-                    document.getElementById('contractAmount').value = caseData.contractAmount || '';
-                    document.getElementById('percentage').value = caseData.percentage || '';
-                    if (caseData.status) {
-                        document.querySelector(`input[name="status"][value="${caseData.status}"]`).checked = true;
+                    // Fill in basic case info
+                    document.getElementById('caseTitle').value = caseData.title;
+                    document.getElementById('lawyerName').value = caseData.lawyerName;
+                    document.getElementById('contractAmount').value = caseData.contractAmount;
+                    document.getElementById('percentage').value = caseData.percentage;
+                    
+                    // Set status
+                    const statusRadio = document.querySelector(`input[name="status"][value="${caseData.status}"]`);
+                    if (statusRadio) {
+                        statusRadio.checked = true;
                     }
                     
                     // Load tracking items
                     if (caseData.trackingItems && caseData.trackingItems.length > 0) {
-                        const trackingList = document.getElementById('trackingList');
-                        trackingList.innerHTML = '';
                         caseData.trackingItems.forEach(item => {
-                            const trackingHTML = `
-                                <div id="tracking-${item.id}" class="bg-white border border-gray-200 p-4 rounded-[12px]">
-                                    <div class="flex justify-between items-start border-b border-gray-200 pb-2 mb-2">
-                                        <span class="text-sm font-medium text-gray-700">${item.date}</span>
-                                        <div class="flex gap-2">
-                                            <button onclick="editTracking(${item.id})" class="text-gray-500 hover:text-gray-700">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                                </svg>
-                                            </button>
-                                            <button onclick="removeTracking(${item.id})" class="text-gray-500 hover:text-red-500">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <p class="text-sm text-gray-600 whitespace-pre-wrap">${item.description}</p>
-                                </div>
-                            `;
-                            trackingList.insertAdjacentHTML('beforeend', trackingHTML);
+                            addTrackingItem(item.date, item.description);
                         });
                     }
                     
                     // Load received items
                     if (caseData.receivedItems && caseData.receivedItems.length > 0) {
-                        const receivedList = document.getElementById('receivedList');
-                        receivedList.innerHTML = '';
                         caseData.receivedItems.forEach(item => {
-                            const receivedHTML = `
-                                <div id="received-${item.id}" class="bg-white border border-gray-200 p-4 rounded-[12px]">
-                                    <div class="flex justify-between items-start border-b border-gray-200 pb-2 mb-2">
-                                        <span class="text-sm font-medium text-gray-700">${item.date}</span>
-                                        <div class="flex gap-2">
-                                            <button onclick="editReceived(${item.id})" class="text-gray-500 hover:text-gray-700">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                                </svg>
-                                            </button>
-                                            <button onclick="removeReceived(${item.id})" class="text-gray-500 hover:text-red-500">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <p class="text-sm text-gray-600">مبلغ: ${item.amount} میلیون تومان</p>
-                                </div>
-                            `;
-                            receivedList.insertAdjacentHTML('beforeend', receivedHTML);
+                            addReceivedItem(item.date, item.amount);
                         });
                     }
                     
                     // Load files
                     if (caseData.files && caseData.files.length > 0) {
-                        const filesList = document.getElementById('filesList');
-                        filesList.innerHTML = '';
                         caseData.files.forEach(file => {
-                            const fileHTML = `
-                                <div id="file-${file.id}" class="bg-white border border-gray-200 p-4 rounded-[12px]">
-                                    <div class="flex justify-between items-start border-b border-gray-200 pb-2 mb-2">
-                                        <span class="text-sm font-medium text-gray-700">${file.title}</span>
-                                        <div class="flex gap-2">
-                                            <button onclick="viewFile(${file.id}); return false;" class="text-gray-500 hover:text-gray-700">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                                </svg>
-                                            </button>
-                                            <button onclick="editFile(${file.id})" class="text-gray-500 hover:text-gray-700">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                                </svg>
-                                            </button>
-                                            <button onclick="removeFile(${file.id})" class="text-gray-500 hover:text-red-500">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <p class="text-sm text-gray-600">نوع فایل: ${file.type}</p>
-                                </div>
-                            `;
-                            filesList.insertAdjacentHTML('beforeend', fileHTML);
+                            addFileItem(file.name, file.size);
                         });
                     }
                 }
             }
         }
 
-        // Load form data when page loads
+        // Load case data when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            loadFormData();
             loadCaseData();
+            loadFormData();
 
             // Add click event to the Received List "افزودن" button
             document.getElementById('addReceivedBtn').addEventListener('click', toggleReceivedOverlay);
             
             // Add click event to the Files "افزودن" button
             document.getElementById('addFileBtn').addEventListener('click', toggleFileOverlay);
-        });
-
-        // Handle form submission
-        document.getElementById('caseForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Get form values
-            const title = document.getElementById('caseTitle').value;
-            const lawyerName = document.getElementById('lawyerName').value;
-            const contractAmount = document.getElementById('contractAmount').value;
-            const percentage = document.getElementById('percentage').value;
-            const status = document.querySelector('input[name="status"]:checked')?.value || 'initial-review';
-            
-            // Get tracking list items
-            const trackingItems = Array.from(document.querySelectorAll('#trackingList .bg-white')).map(item => ({
-                id: item.id.split('-')[1],
-                date: item.querySelector('span').textContent,
-                description: item.querySelector('p').textContent
-            }));
-            
-            // Get received list items
-            const receivedItems = Array.from(document.querySelectorAll('#receivedList .bg-white')).map(item => ({
-                id: item.id.split('-')[1],
-                date: item.querySelector('span').textContent,
-                amount: item.querySelector('p').textContent.split(': ')[1].split(' ')[0]
-            }));
-            
-            // Get files list
-            const files = Array.from(document.querySelectorAll('#filesList .bg-white')).map(item => {
-                const fileId = item.id.split('-')[1];
-                const savedFiles = JSON.parse(localStorage.getItem('files') || '[]');
-                return savedFiles.find(f => f.id.toString() === fileId);
-            }).filter(Boolean);
-
-            // Get the last tracking date if available
-            const lastUpdate = trackingItems.length > 0 ? trackingItems[0].date : 'بدون پیگیری';
-
-            // Create case object
-            const caseData = {
-                id: Date.now().toString(), // Generate unique ID
-                title,
-                lawyerName,
-                contractAmount,
-                percentage,
-                status,
-                trackingItems,
-                receivedItems,
-                files,
-                lastUpdate,
-                createdAt: new Date().toISOString()
-            };
-
-            // Get user's phone number
-            const userPhone = localStorage.getItem('userPhone');
-            
-            // Get existing cases for this user
-            const cases = JSON.parse(localStorage.getItem(`cases_${userPhone}`) || '[]');
-            
-            // Check if we're editing an existing case
-            const currentCaseId = localStorage.getItem('currentCaseId');
-            if (currentCaseId) {
-                // Update existing case
-                const caseIndex = cases.findIndex(c => c.id === currentCaseId);
-                if (caseIndex !== -1) {
-                    cases[caseIndex] = { ...cases[caseIndex], ...caseData };
-                }
-            } else {
-                // Add new case
-                cases.push(caseData);
-            }
-
-            // Save to localStorage with user-specific key
-            localStorage.setItem(`cases_${userPhone}`, JSON.stringify(cases));
-            
-            // Clear current case ID if it exists
-            localStorage.removeItem('currentCaseId');
-            localStorage.removeItem('caseTitle');
-            localStorage.removeItem('lawyerName');
-            localStorage.removeItem('contractAmount');
-            localStorage.removeItem('percentage');
-            localStorage.removeItem('status');
-            localStorage.removeItem('trackings');
-            localStorage.removeItem('received');
-            localStorage.removeItem('files');
-            
-            // Redirect to panel first page
-            window.location.href = 'panelFirstPage.html';
         });
 
         function toggleReceivedOverlay() {
@@ -1491,39 +1425,74 @@
         }
 
         // Add this function to handle case removal
-        async function removeCase() {
+        function removeCase() {
+            toggleDeleteCaseOverlay();
+        }
+
+        // Toggle delete case overlay
+        function toggleDeleteCaseOverlay() {
+            const overlay = document.getElementById('deleteCaseOverlay');
+            const overlayContent = document.getElementById('deleteCaseOverlayContent');
+            
+            if (overlay.classList.contains('hidden')) {
+                // Show overlay
+                overlay.classList.remove('hidden');
+                // Trigger reflow
+                overlay.offsetHeight;
+                // Add opacity
+                overlay.classList.add('bg-opacity-50');
+                // Slide in content
+                overlayContent.classList.remove('translate-y-[100vh]');
+            } else {
+                // Slide out content
+                overlayContent.classList.add('translate-y-[100vh]');
+                // Remove opacity
+                overlay.classList.remove('bg-opacity-50');
+                // Hide overlay after transition
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 500);
+            }
+        }
+
+        // Handle click outside delete case overlay
+        function handleDeleteOverlayClick(event) {
+            const overlay = document.getElementById('deleteCaseOverlay');
+            const overlayContent = document.getElementById('deleteCaseOverlayContent');
+            
+            // Check if the click was on the overlay background (not the content)
+            if (event.target === overlay) {
+                toggleDeleteCaseOverlay();
+            }
+        }
+
+        // Confirm delete case
+        function confirmDeleteCase() {
             const currentCaseId = localStorage.getItem('currentCaseId');
             const userPhone = localStorage.getItem('userPhone');
             
             if (currentCaseId) {
-                try {
-                    const response = await fetch(`http://localhost:3000/api/cases/${userPhone}/${currentCaseId}`, {
-                        method: 'DELETE'
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error('Failed to delete case');
-                    }
-                    
-                    // Clear all related data
-                    localStorage.removeItem('currentCaseId');
-                    localStorage.removeItem('caseTitle');
-                    localStorage.removeItem('lawyerName');
-                    localStorage.removeItem('contractAmount');
-                    localStorage.removeItem('percentage');
-                    localStorage.removeItem('status');
-                    localStorage.removeItem('trackings');
-                    localStorage.removeItem('received');
-                    localStorage.removeItem('files');
-                    
-                    // Navigate back to panel first page
-                    window.location.href = 'panelFirstPage.html';
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('خطا در حذف پرونده. لطفا دوباره تلاش کنید.');
-                }
-            } else {
-                // If no currentCaseId, just go back to panel page
+                // Get existing cases
+                const cases = JSON.parse(localStorage.getItem(`cases_${userPhone}`) || '[]');
+                
+                // Remove the case
+                const updatedCases = cases.filter(c => c.id !== currentCaseId);
+                
+                // Save back to localStorage
+                localStorage.setItem(`cases_${userPhone}`, JSON.stringify(updatedCases));
+                
+                // Clear all related data
+                localStorage.removeItem('currentCaseId');
+                localStorage.removeItem('caseTitle');
+                localStorage.removeItem('lawyerName');
+                localStorage.removeItem('contractAmount');
+                localStorage.removeItem('percentage');
+                localStorage.removeItem('status');
+                localStorage.removeItem('trackings');
+                localStorage.removeItem('received');
+                localStorage.removeItem('files');
+                
+                // Navigate back to panel first page
                 window.location.href = 'panelFirstPage.html';
             }
         }
