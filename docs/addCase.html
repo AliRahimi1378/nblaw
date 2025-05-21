@@ -497,6 +497,78 @@
     <script src="https://unpkg.com/@material/persian-datepicker@latest/dist/js/persian-datepicker.min.js"></script>
 
     <script>
+        // Get user phone from localStorage
+        const userPhone = localStorage.getItem('userPhone');
+        if (!userPhone) {
+            window.location.href = 'loginPage.html';
+        }
+
+        // Function to save case to server
+        async function saveCase(caseData) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/cases/${userPhone}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(caseData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to save case');
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error saving case:', error);
+                alert('خطا در ذخیره پرونده. لطفا دوباره تلاش کنید.');
+                throw error;
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('caseForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const caseData = {
+                title: document.getElementById('caseTitle').value,
+                lawyer: document.getElementById('lawyerName').value,
+                contractAmount: document.getElementById('contractAmount').value,
+                percentage: document.getElementById('percentage').value,
+                trackings: savedTrackings,
+                received: savedReceived,
+                files: savedFiles,
+                status: document.querySelector('input[name="status"]:checked')?.value || 'initial-review',
+                lastUpdate: new Date().toISOString()
+            };
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/cases/${userPhone}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(caseData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to save case');
+                }
+                
+                alert('پرونده با موفقیت ذخیره شد');
+                window.location.href = 'panelFirstPage.html';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('خطا در ذخیره پرونده. لطفا دوباره تلاش کنید.');
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userPhone');
+            window.location.href = 'loginPage.html';
+        }
+
         // Check if user is logged in
         if (!localStorage.getItem('isLoggedIn')) {
             window.location.href = 'loginPage.html';
@@ -1419,33 +1491,37 @@
         }
 
         // Add this function to handle case removal
-        function removeCase() {
+        async function removeCase() {
             const currentCaseId = localStorage.getItem('currentCaseId');
             const userPhone = localStorage.getItem('userPhone');
             
             if (currentCaseId) {
-                // Get existing cases for this user
-                const cases = JSON.parse(localStorage.getItem(`cases_${userPhone}`) || '[]');
-                
-                // Remove the case - ensure we're comparing strings
-                const updatedCases = cases.filter(c => c.id.toString() !== currentCaseId.toString());
-                
-                // Save updated cases
-                localStorage.setItem(`cases_${userPhone}`, JSON.stringify(updatedCases));
-                
-                // Clear all related data
-                localStorage.removeItem('currentCaseId');
-                localStorage.removeItem('caseTitle');
-                localStorage.removeItem('lawyerName');
-                localStorage.removeItem('contractAmount');
-                localStorage.removeItem('percentage');
-                localStorage.removeItem('status');
-                localStorage.removeItem('trackings');
-                localStorage.removeItem('received');
-                localStorage.removeItem('files');
-                
-                // Navigate back to panel first page
-                window.location.href = 'panelFirstPage.html';
+                try {
+                    const response = await fetch(`http://localhost:3000/api/cases/${userPhone}/${currentCaseId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to delete case');
+                    }
+                    
+                    // Clear all related data
+                    localStorage.removeItem('currentCaseId');
+                    localStorage.removeItem('caseTitle');
+                    localStorage.removeItem('lawyerName');
+                    localStorage.removeItem('contractAmount');
+                    localStorage.removeItem('percentage');
+                    localStorage.removeItem('status');
+                    localStorage.removeItem('trackings');
+                    localStorage.removeItem('received');
+                    localStorage.removeItem('files');
+                    
+                    // Navigate back to panel first page
+                    window.location.href = 'panelFirstPage.html';
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('خطا در حذف پرونده. لطفا دوباره تلاش کنید.');
+                }
             } else {
                 // If no currentCaseId, just go back to panel page
                 window.location.href = 'panelFirstPage.html';
