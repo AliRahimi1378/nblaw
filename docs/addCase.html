@@ -83,6 +83,11 @@
         .error-label {
             color: #ef4444 !important;
         }
+
+        /* Add style to prevent scrolling when overlay is open */
+        body.no-scroll {
+            overflow: hidden;
+        }
     </style>
 </head>
 <body class="bg-gray-50 p-5">
@@ -138,6 +143,17 @@
                     class="w-full px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black rounded-[12px]"
                 >
             </div>
+
+            <!-- Client Name -->
+            <div class="pb-6 border-b border-gray-200">
+                <label class="block text-sm text-gray-500 mb-1">موکل</label>
+                <input 
+                    type="text" 
+                    id="clientName"
+                    placeholder="نام موکل را وارد نمایید" 
+                    class="w-full px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black rounded-[12px]"
+                >
+            </div>
             
             <!-- Pick List -->
             <div class="pb-6 border-b border-gray-200">
@@ -155,7 +171,7 @@
             
             <!-- Contract Amount -->
             <div class="">
-                <label class="block text-sm text-gray-500 mb-1">مبلغ قرارداد (میلیون)</label>
+                <label class="block text-sm text-gray-500 mb-1">مبلغ قرارداد (میلیون تومان)</label>
                 <input 
                     type="number" 
                     id="contractAmount"
@@ -178,6 +194,9 @@
                 >
             </div>
             
+            <!-- Share Calculation -->
+            <div id="shareCalculation" class="text-sm text-gray-600"></div>
+            
             <!-- Received List -->
             <div class="pb-6 border-b border-gray-200">
                 <label class="block text-sm text-gray-500 mb-1">لیست دریافتی</label>
@@ -191,6 +210,8 @@
                 >
                     افزودن
                 </button>
+                <!-- Add remaining amount display -->
+                <div id="remainingAmount" class="text-sm text-gray-600 mt-2"></div>
             </div>
             
             <!-- Files -->
@@ -568,6 +589,7 @@
             // Get form values
             const title = document.getElementById('caseTitle').value;
             const lawyerName = document.getElementById('lawyerName').value;
+            const clientName = document.getElementById('clientName').value;
             const contractAmount = document.getElementById('contractAmount').value;
             const percentage = document.getElementById('percentage').value;
             const status = document.querySelector('input[name="status"]:checked')?.value || 'initial-review';
@@ -601,6 +623,7 @@
                 id: Date.now().toString(), // Generate unique ID
                 title,
                 lawyerName,
+                clientName,
                 contractAmount,
                 percentage,
                 status,
@@ -633,23 +656,146 @@
             // Save to localStorage with user-specific key
             localStorage.setItem(`cases_${userPhone}`, JSON.stringify(cases));
             
-            // Clear all related data
-            localStorage.removeItem('currentCaseId');
-            localStorage.removeItem('caseTitle');
-            localStorage.removeItem('lawyerName');
-            localStorage.removeItem('contractAmount');
-            localStorage.removeItem('percentage');
-            localStorage.removeItem('status');
-            localStorage.removeItem('trackings');
-            localStorage.removeItem('received');
-            localStorage.removeItem('files');
+            // Save the current case ID for future reference
+            localStorage.setItem('currentCaseId', caseData.id);
+            
+            // Save all form data to localStorage
+            localStorage.setItem('caseTitle', title);
+            localStorage.setItem('lawyerName', lawyerName);
+            localStorage.setItem('clientName', clientName);
+            localStorage.setItem('contractAmount', contractAmount);
+            localStorage.setItem('percentage', percentage);
+            localStorage.setItem('status', status);
+            localStorage.setItem('trackings', JSON.stringify(trackingItems));
+            localStorage.setItem('received', JSON.stringify(receivedItems));
+            localStorage.setItem('files', JSON.stringify(files));
             
             // Redirect to panel first page
             window.location.href = 'panelFirstPage.html';
         });
 
-        // Remove the duplicate event listener
-        document.getElementById('caseForm').removeEventListener('submit', validateAndSubmit);
+        // Load case data if editing
+        function loadCaseData() {
+            const currentCaseId = localStorage.getItem('currentCaseId');
+            const userPhone = localStorage.getItem('userPhone');
+            
+            if (currentCaseId) {
+                // Get cases from localStorage
+                const cases = JSON.parse(localStorage.getItem(`cases_${userPhone}`) || '[]');
+                const caseData = cases.find(c => c.id === currentCaseId);
+                
+                if (caseData) {
+                    // Fill in basic case info
+                    document.getElementById('caseTitle').value = caseData.title || '';
+                    document.getElementById('lawyerName').value = caseData.lawyerName || '';
+                    document.getElementById('clientName').value = caseData.clientName || '';
+                    document.getElementById('contractAmount').value = caseData.contractAmount || '';
+                    document.getElementById('percentage').value = caseData.percentage || '';
+                    
+                    // Set status
+                    const statusRadio = document.querySelector(`input[name="status"][value="${caseData.status}"]`);
+                    if (statusRadio) {
+                        statusRadio.checked = true;
+                    }
+                    
+                    // Load tracking items
+                    if (caseData.trackingItems && caseData.trackingItems.length > 0) {
+                        const trackingList = document.getElementById('trackingList');
+                        trackingList.innerHTML = ''; // Clear existing items
+                        caseData.trackingItems.forEach(item => {
+                            const trackingHTML = `
+                                <div id="tracking-${item.id}" class="bg-white border border-gray-200 p-4 rounded-[12px]">
+                                    <div class="flex justify-between items-start border-b border-gray-200 pb-2 mb-2">
+                                        <span class="text-sm font-medium text-gray-700">${item.date}</span>
+                                        <div class="flex gap-2">
+                                            <button onclick="editTracking(${item.id})" class="text-gray-500 hover:text-gray-700">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                </svg>
+                                            </button>
+                                            <button onclick="removeTracking(${item.id})" class="text-gray-500 hover:text-red-500">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-gray-600 whitespace-pre-wrap">${item.description}</p>
+                                </div>
+                            `;
+                            trackingList.insertAdjacentHTML('beforeend', trackingHTML);
+                        });
+                    }
+                    
+                    // Load received items
+                    if (caseData.receivedItems && caseData.receivedItems.length > 0) {
+                        const receivedList = document.getElementById('receivedList');
+                        receivedList.innerHTML = ''; // Clear existing items
+                        caseData.receivedItems.forEach(item => {
+                            const receivedHTML = `
+                                <div id="received-${item.id}" class="bg-white border border-gray-200 p-4 rounded-[12px]">
+                                    <div class="flex justify-between items-start border-b border-gray-200 pb-2 mb-2">
+                                        <span class="text-sm font-medium text-gray-700">${item.date}</span>
+                                        <div class="flex gap-2">
+                                            <button onclick="editReceived(${item.id})" class="text-gray-500 hover:text-gray-700">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                </svg>
+                                            </button>
+                                            <button onclick="removeReceived(${item.id})" class="text-gray-500 hover:text-red-500">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-gray-600">مبلغ: ${item.amount} میلیون تومان</p>
+                                </div>
+                            `;
+                            receivedList.insertAdjacentHTML('beforeend', receivedHTML);
+                        });
+                    }
+                    
+                    // Load files
+                    if (caseData.files && caseData.files.length > 0) {
+                        const filesList = document.getElementById('filesList');
+                        filesList.innerHTML = ''; // Clear existing items
+                        caseData.files.forEach(file => {
+                            const fileHTML = `
+                                <div id="file-${file.id}" class="bg-white border border-gray-200 p-4 rounded-[12px]">
+                                    <div class="flex justify-between items-start border-b border-gray-200 pb-2 mb-2">
+                                        <span class="text-sm font-medium text-gray-700">${file.title}</span>
+                                        <div class="flex gap-2">
+                                            <button onclick="viewFile(${file.id}); return false;" class="text-gray-500 hover:text-gray-700">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                </svg>
+                                            </button>
+                                            <button onclick="editFile(${file.id})" class="text-gray-500 hover:text-gray-700">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                </svg>
+                                            </button>
+                                            <button onclick="removeFile(${file.id})" class="text-gray-500 hover:text-red-500">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-gray-600">نوع فایل: ${file.type}</p>
+                                </div>
+                            `;
+                            filesList.insertAdjacentHTML('beforeend', fileHTML);
+                        });
+                    }
+
+                    // Calculate and display share
+                    calculateShare();
+                }
+            }
+        }
 
         function logout() {
             localStorage.removeItem('isLoggedIn');
@@ -681,6 +827,7 @@
             if (overlay.classList.contains('hidden')) {
                 // Show overlay
                 overlay.classList.remove('hidden');
+                document.body.classList.add('no-scroll');
                 // Trigger reflow
                 overlay.offsetHeight;
                 // Add opacity
@@ -716,6 +863,7 @@
                 // Hide overlay after transition
                 setTimeout(() => {
                     overlay.classList.add('hidden');
+                    document.body.classList.remove('no-scroll');
                 }, 500);
             }
         }
@@ -911,13 +1059,46 @@
             localStorage.setItem('lawyerName', this.value);
         });
 
+        document.getElementById('clientName').addEventListener('input', function() {
+            localStorage.setItem('clientName', this.value);
+        });
+
         document.getElementById('contractAmount').addEventListener('input', function() {
             localStorage.setItem('contractAmount', this.value);
+            calculateShare();
         });
 
         document.getElementById('percentage').addEventListener('input', function() {
             localStorage.setItem('percentage', this.value);
+            calculateShare();
         });
+
+        // Function to calculate and display share
+        function calculateShare() {
+            const contractAmount = parseFloat(document.getElementById('contractAmount').value) || 0;
+            const percentage = parseFloat(document.getElementById('percentage').value) || 0;
+            const shareElement = document.getElementById('shareCalculation');
+            const remainingElement = document.getElementById('remainingAmount');
+            
+            if (contractAmount && percentage) {
+                const share = (contractAmount * percentage) / 100;
+                shareElement.textContent = `سهم شما ${share} میلیون تومان است`;
+
+                // Calculate total received amount
+                const receivedItems = Array.from(document.querySelectorAll('#receivedList .bg-white')).map(item => {
+                    const amountText = item.querySelector('p').textContent;
+                    return parseFloat(amountText.split(': ')[1].split(' ')[0]) || 0;
+                });
+                const totalReceived = receivedItems.reduce((sum, amount) => sum + amount, 0);
+
+                // Calculate and display remaining amount
+                const remaining = share - totalReceived;
+                remainingElement.textContent = `${remaining} میلیون تومان باقی مانده است.`;
+            } else {
+                shareElement.textContent = '';
+                remainingElement.textContent = '';
+            }
+        }
 
         // Add event listener for status radio buttons
         document.querySelectorAll('input[name="status"]').forEach(radio => {
@@ -931,6 +1112,7 @@
             // Load text inputs
             document.getElementById('caseTitle').value = localStorage.getItem('caseTitle') || '';
             document.getElementById('lawyerName').value = localStorage.getItem('lawyerName') || '';
+            document.getElementById('clientName').value = localStorage.getItem('clientName') || '';
             document.getElementById('contractAmount').value = localStorage.getItem('contractAmount') || '';
             document.getElementById('percentage').value = localStorage.getItem('percentage') || '';
 
@@ -938,53 +1120,6 @@
             const savedStatus = localStorage.getItem('status');
             if (savedStatus) {
                 document.querySelector(`input[name="status"][value="${savedStatus}"]`).checked = true;
-            }
-        }
-
-        // Load case data if editing
-        function loadCaseData() {
-            const currentCaseId = localStorage.getItem('currentCaseId');
-            const userPhone = localStorage.getItem('userPhone');
-            
-            if (currentCaseId) {
-                // Get cases from localStorage
-                const cases = JSON.parse(localStorage.getItem(`cases_${userPhone}`) || '[]');
-                const caseData = cases.find(c => c.id === currentCaseId);
-                
-                if (caseData) {
-                    // Fill in basic case info
-                    document.getElementById('caseTitle').value = caseData.title;
-                    document.getElementById('lawyerName').value = caseData.lawyerName;
-                    document.getElementById('contractAmount').value = caseData.contractAmount;
-                    document.getElementById('percentage').value = caseData.percentage;
-                    
-                    // Set status
-                    const statusRadio = document.querySelector(`input[name="status"][value="${caseData.status}"]`);
-                    if (statusRadio) {
-                        statusRadio.checked = true;
-                    }
-                    
-                    // Load tracking items
-                    if (caseData.trackingItems && caseData.trackingItems.length > 0) {
-                        caseData.trackingItems.forEach(item => {
-                            addTrackingItem(item.date, item.description);
-                        });
-                    }
-                    
-                    // Load received items
-                    if (caseData.receivedItems && caseData.receivedItems.length > 0) {
-                        caseData.receivedItems.forEach(item => {
-                            addReceivedItem(item.date, item.amount);
-                        });
-                    }
-                    
-                    // Load files
-                    if (caseData.files && caseData.files.length > 0) {
-                        caseData.files.forEach(file => {
-                            addFileItem(file.name, file.size);
-                        });
-                    }
-                }
             }
         }
 
@@ -1007,6 +1142,7 @@
             if (overlay.classList.contains('hidden')) {
                 // Show overlay
                 overlay.classList.remove('hidden');
+                document.body.classList.add('no-scroll');
                 // Trigger reflow
                 overlay.offsetHeight;
                 // Add opacity
@@ -1041,6 +1177,7 @@
                 // Hide overlay after transition
                 setTimeout(() => {
                     overlay.classList.add('hidden');
+                    document.body.classList.remove('no-scroll');
                 }, 500);
             }
         }
@@ -1121,6 +1258,9 @@
                 
                 // Close the overlay
                 toggleReceivedOverlay();
+
+                // Recalculate remaining amount
+                calculateShare();
             }
         }
 
@@ -1139,6 +1279,9 @@
                 if (!receivedList.children.length) {
                     receivedList.innerHTML = '<p class="text-sm text-gray-500 mt-2 text-center mb-2">هنوز دریافتی ثبت نشده است!</p>';
                 }
+
+                // Recalculate remaining amount
+                calculateShare();
             }
         }
 
@@ -1228,6 +1371,7 @@
             if (overlay.classList.contains('hidden')) {
                 // Show overlay
                 overlay.classList.remove('hidden');
+                document.body.classList.add('no-scroll');
                 // Trigger reflow
                 overlay.offsetHeight;
                 // Add opacity
@@ -1246,6 +1390,7 @@
                 // Hide overlay after transition
                 setTimeout(() => {
                     overlay.classList.add('hidden');
+                    document.body.classList.remove('no-scroll');
                 }, 500);
             }
         }
@@ -1437,6 +1582,7 @@
             if (overlay.classList.contains('hidden')) {
                 // Show overlay
                 overlay.classList.remove('hidden');
+                document.body.classList.add('no-scroll');
                 // Trigger reflow
                 overlay.offsetHeight;
                 // Add opacity
@@ -1451,6 +1597,7 @@
                 // Hide overlay after transition
                 setTimeout(() => {
                     overlay.classList.add('hidden');
+                    document.body.classList.remove('no-scroll');
                 }, 500);
             }
         }
@@ -1485,6 +1632,7 @@
                 localStorage.removeItem('currentCaseId');
                 localStorage.removeItem('caseTitle');
                 localStorage.removeItem('lawyerName');
+                localStorage.removeItem('clientName');
                 localStorage.removeItem('contractAmount');
                 localStorage.removeItem('percentage');
                 localStorage.removeItem('status');
@@ -1505,6 +1653,7 @@
             if (overlay.classList.contains('hidden')) {
                 // Show overlay
                 overlay.classList.remove('hidden');
+                document.body.classList.add('no-scroll');
                 // Trigger reflow
                 overlay.offsetHeight;
                 // Add opacity
@@ -1519,6 +1668,7 @@
                 // Hide overlay after transition
                 setTimeout(() => {
                     overlay.classList.add('hidden');
+                    document.body.classList.remove('no-scroll');
                 }, 500);
             }
         }
@@ -1610,6 +1760,7 @@
             localStorage.removeItem('currentCaseId');
             localStorage.removeItem('caseTitle');
             localStorage.removeItem('lawyerName');
+            localStorage.removeItem('clientName');
             localStorage.removeItem('contractAmount');
             localStorage.removeItem('percentage');
             localStorage.removeItem('status');
