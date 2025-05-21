@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فرم پرونده</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @font-face {
+            font-family: 'Kalameh';
+            src: url('Fonts/KalamehFaNum-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Kalameh';
+            src: url('Fonts/KalamehFaNum-Bold.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Kalameh';
+            src: url('Fonts/KalamehFaNum-Thin.ttf') format('truetype');
+            font-weight: 100;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Kalameh';
+            src: url('Fonts/KalamehFaNum-Black.ttf') format('truetype');
+            font-weight: 900;
+            font-style: normal;
+        }
+        body {
+            font-family: 'Kalameh', sans-serif;
+        }
+
+        /* Custom radio button styling */
+        input[type="radio"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+        }
+
+        input[type="radio"]:checked {
+            border-color: #000;
+            background-color: #000;
+        }
+
+        input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background-color: white;
+            border-radius: 50%;
+        }
+
+        input[type="radio"]:focus {
+            box-shadow: none;
+        }
+
+        /* Error message styling */
+        .error-message {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .error-input {
+            border-color: #ef4444 !important;
+        }
+
+        .error-label {
+            color: #ef4444 !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-5">
+    <header class="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-50">
+        <div class="h-full flex items-center justify-between px-4">
+
+            <!-- Left side content -->
+            <div class="flex items-center">
+                <!-- Logo -->
+                <div class="h-10 w-10 rounded-[12px]">
+                    <img src="Pictures/Logo.png" alt="Logo" class="h-full w-full object-contain">
+                </div>
+
+                <!-- Vertical Line -->
+                <div class="h-8 w-[1px] bg-gray-200 mx-4"></div>
+
+                <!-- Text Rows -->
+                <div class="flex flex-col">
+                    <span class="text-sm text-gray-600"></span>
+                    <span class="text-sm text-gray-500"></span>
+                </div>
+            </div>
+
+            <!-- Logout button on the right -->
+            <div class="h-10 w-10 rounded-[12px] hover:bg-gray-100 transition-all duration-200 p-1 flex items-center justify-center cursor-pointer" onclick="logout()">
+                <img src="Pictures/Sign_out_squre_light.svg" alt="Profile" class="h-8 w-8 object-contain transition-all duration-200">
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-md mx-auto bg-gray-50 border border-gray-200 overflow-hidden mt-20 rounded-[12px]">
+        
+        <form id="caseForm" class="p-4 space-y-6">
+            <!-- File Title -->
+            <div class="pb-6 border-b border-gray-200">
+                <label class="block text-sm text-gray-500 mb-1" id="caseTitleLabel">عنوان پرونده</label>
+                <input 
+                    type="text" 
+                    id="caseTitle"
+                    placeholder="عنوان پرونده را وارد نمایید" 
+                    class="w-full px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black rounded-[12px]"
+                >
+                <div class="error-message" id="caseTitleError">لطفا عنوان پرونده را وارد کنید</div>
+            </div>
+
+            <!-- Lawyer Name -->
+            <div class="pb-6 border-b border-gray-200">
+                <label class="block text-sm text-gray-500 mb-1">وکیل</label>
+                <input 
+                    type="text" 
+                    id="lawyerName"
+                    placeholder="نام وکیل را وارد نمایید" 
+                    class="w-full px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black rounded-[12px]"
+                >
+            </div>
+            
+            <!-- Pick List -->
+            <div class="pb-6 border-b border-gray-200">
+                <label class="block text-sm text-gray-500 mb-1">لیست پیگیری‌ها</label>
+                <div id="trackingList" class="mb-2 space-y-2">
+                    <p class="text-sm text-gray-500 mb-2 text-center">هنوز پیگیری ثبت نشده!</p>
+                </div>
+                <button 
+                    type="button" 
+                    class="w-full py-2 px-4 bg-white hover:bg-gray-100 text-black border border-gray-200 rounded-[12px] transition duration-200 active:underline"
+                >
+                    افزودن
+                </button>
+            </div>
+            
+            <!-- Contract Amount -->
+            <div class="">
+                <label class="block text-sm text-gray-500 mb-1">مبلغ قرارداد (میلیون)</label>
+                <input 
+                    type="number" 
+                    id="contractAmount"
+                    placeholder="مبلغ قرارداد را وارد نمایید" 
+                    class="w-full px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black rounded-[12px]"
+                >
+            </div>
+            
+            <!-- Percentage -->
+            <div class="">
+                <label class="block text-sm text-gray-500 mb-1">درصد شما</label>
+                <input 
+                    type="number" 
+                    id="percentage"
+                    placeholder="درصد خود را وارد نمایید" 
+                    min="0"
+                    max="100"
+                    step="1"
+                    class="w-full px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black rounded-[12px]"
+                >
+            </div>
+            
+            <!-- Received List -->
+            <div class="pb-6 border-b border-gray-200">
+                <label class="block text-sm text-gray-500 mb-1">لیست دریافتی</label>
+                <div id="receivedList" class="mb-2 space-y-2">
+                    <p class="text-sm text-gray-500 mt-2 text-center mb-2">هنوز دریافتی ثبت نشده است!</p>
+                </div>
+                <button 
+                    type="button" 
+                    id="addReceivedBtn"
+                    class="w-full py-2 px-4 bg-white hover:bg-gray-100 text-black border border-gray-200 rounded-[12px] transition duration-200 active:underline"
+                >
+                    افزودن
+                </button>
+            </div>
+            
+            <!-- Files -->
+            <div class="pb-6 border-b border-gray-200">
+                <label class="block text-sm text-gray-500 mb-1">فایل‌ها</label>
+                <div id="filesList" class="mb-2 space-y-2">
+                    <p class="text-sm text-gray-500 mt-2 text-center mb-2">هنوز فایلی ثبت نشده است!</p>
+                </div>
+                <button 
+                    type="button" 
+                    id="addFileBtn"
+                    class="w-full py-2 px-4 bg-white hover:bg-gray-100 text-black border border-gray-200 rounded-[12px] transition duration-200 active:underline"
+                >
+                    افزودن
+                </button>
+            </div>
+            
+            <!-- Status -->
+            <div class="pb-6 border-b border-gray-200">
+                <label class="block text-sm text-gray-500 mb-2" id="statusLabel">وضعیت پرونده</label>
+                <div class="error-message" id="statusError">لطفا وضعیت پرونده را انتخاب کنید</div>
+                <div class="space-y-2">
+                    <div class="flex items-center">
+                        <input 
+                            type="radio" 
+                            id="status1" 
+                            name="status" 
+                            value="initial-review" 
+                            class="ml-2"
+                        >
+                        <label for="status1" class="text-sm text-gray-700">بررسی اولیه</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input 
+                            type="radio" 
+                            id="status2" 
+                            name="status" 
+                            value="contract" 
+                            class="ml-2"
+                        >
+                        <label for="status2" class="text-sm text-gray-700">عقد قرارداد</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input 
+                            type="radio" 
+                            id="status3" 
+                            name="status" 
+                            value="defense" 
+                            class="ml-2"
+                        >
+                        <label for="status3" class="text-sm text-gray-700">دفاعیه</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input 
+                            type="radio" 
+                            id="status4" 
+                            name="status" 
+                            value="final" 
+                            class="ml-2"
+                        >
+                        <label for="status4" class="text-sm text-gray-700">اتمام</label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="flex flex-col space-y-2 pt-4">
+                <button 
+                    type="submit" 
+                    class="w-full py-2 px-4 bg-black hover:bg-gray-800 text-white rounded-[12px] transition duration-200 active:underline"
+                    onclick="validateAndSubmit(event)"
+                >
+                    ثبت اطلاعات
+                </button>
+                <div class="flex justify-between">
+                    <button 
+                        type="button" 
+                        onclick="cancelCase()"
+                        class="w-full py-2 px-4 bg-white hover:bg-gray-100 text-black border border-gray-200 rounded-[12px] transition duration-200 active:underline ml-2"
+                    >
+                        لغو
+                    </button>
+                    <button 
+                        type="button" 
+                        onclick="removeCase()"
+                        id="deleteButton"
+                        class="w-full py-2 px-4 bg-white hover:bg-red-50 text-red-600 border border-red-600 rounded-[12px] transition duration-200 active:underline ml-2 hidden"
+                    >
+                        حذف پرونده
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-0 hidden transition-all duration-500">
+        <div id="overlayContent" class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-[12px] transform translate-y-[100vh] transition-all duration-500">
+            <div class="p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl">افزودن پیگیری جدید</h2>
+                    <button onclick="toggleOverlay()" class="p-2 hover:bg-gray-100 rounded-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <!-- Persian Date Picker -->
+                    <div>
+                        <label class="block text-sm text-gray-500 mb-1">تاریخ</label>
+                        <div class="flex gap-2">
+                            <select id="persianYear" class="w-1/3 px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black rounded-[12px]">
+                                <option value="">سال</option>
+                            </select>
+                            <select id="persianMonth" class="w-1/3 px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black rounded-[12px]">
+                                <option value="">ماه</option>
+                                <option value="1">فروردین</option>
+                                <option value="2">اردیبهشت</option>
+                                <option value="3">خرداد</option>
+                                <option value="4">تیر</option>
+                                <option value="5">مرداد</option>
+                                <option value="6">شهریور</option>
+                                <option value="7">مهر</option>
+                                <option value="8">آبان</option>
+                                <option value="9">آذر</option>
+                                <option value="10">دی</option>
+                                <option value="11">بهمن</option>
+                                <option value="12">اسفند</option>
+                            </select>
+                            <select id="persianDay" class="w-1/3 px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black rounded-[12px]">
+                                <option value="">روز</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Description -->
+                    <div>
+                        <label class="block text-sm text-gray-500 mb-1">توضیحات</label>
+                        <textarea 
+                            id="description" 
+                            placeholder="توضیحات را وارد کنید (حداکثر ۱۵۰ کلمه)" 
+                            class="w-full px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black h-32 resize-none rounded-[12px]"
+                            maxlength="150"
+                        ></textarea>
+                        <div class="text-sm text-gray-500 mt-1 text-left">
+                            <span id="wordCount">0</span>/150 کلمه
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button 
+                        type="button" 
+                        class="w-full py-2 px-4 bg-black hover:bg-gray-700 text-white border border-gray-200 rounded-[12px] transition duration-200 active:underline"
+                        onclick="submitTracking()"
+                    >
+                        ثبت پیگیری
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay for Received List -->
+    <div id="receivedOverlay" class="fixed inset-0 bg-black bg-opacity-0 hidden transition-all duration-500">
+        <div id="receivedOverlayContent" class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-[12px] transform translate-y-[100vh] transition-all duration-500">
+            <div class="p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl">افزودن دریافتی جدید</h2>
+                    <button onclick="toggleReceivedOverlay()" class="p-2 hover:bg-gray-100 rounded-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <!-- Persian Date Picker -->
+                    <div>
+                        <label class="block text-sm text-gray-500 mb-1">تاریخ</label>
+                        <div class="flex gap-2">
+                            <select id="receivedYear" class="w-1/3 px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black rounded-[12px]">
+                                <option value="">سال</option>
+                            </select>
+                            <select id="receivedMonth" class="w-1/3 px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black rounded-[12px]">
+                                <option value="">ماه</option>
+                                <option value="1">فروردین</option>
+                                <option value="2">اردیبهشت</option>
+                                <option value="3">خرداد</option>
+                                <option value="4">تیر</option>
+                                <option value="5">مرداد</option>
+                                <option value="6">شهریور</option>
+                                <option value="7">مهر</option>
+                                <option value="8">آبان</option>
+                                <option value="9">آذر</option>
+                                <option value="10">دی</option>
+                                <option value="11">بهمن</option>
+                                <option value="12">اسفند</option>
+                            </select>
+                            <select id="receivedDay" class="w-1/3 px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black rounded-[12px]">
+                                <option value="">روز</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Amount -->
+                    <div>
+                        <label class="block text-sm text-gray-500 mb-1">مبلغ (میلیون)</label>
+                        <input 
+                            type="number" 
+                            id="receivedAmount"
+                            placeholder="مبلغ را وارد کنید" 
+                            class="w-full px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black rounded-[12px]"
+                        >
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button 
+                        type="button" 
+                        class="w-full py-2 px-4 bg-black hover:bg-gray-700 text-white border border-gray-200 rounded-[12px] transition duration-200 active:underline"
+                        onclick="submitReceived()"
+                    >
+                        ثبت دریافتی
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay for Files -->
+    <div id="fileOverlay" class="fixed inset-0 bg-black bg-opacity-0 hidden transition-all duration-500">
+        <div id="fileOverlayContent" class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-[12px] transform translate-y-[100vh] transition-all duration-500">
+            <div class="p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl">افزودن فایل جدید</h2>
+                    <button onclick="toggleFileOverlay()" class="p-2 hover:bg-gray-100 rounded-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <!-- File Title -->
+                    <div>
+                        <label class="block text-sm text-gray-500 mb-1">عنوان فایل</label>
+                        <input 
+                            type="text" 
+                            id="fileTitle"
+                            placeholder="عنوان فایل را وارد کنید" 
+                            class="w-full px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black rounded-[12px]"
+                        >
+                    </div>
+                    
+                    <!-- File Upload -->
+                    <div>
+                        <label class="block text-sm text-gray-500 mb-1">انتخاب فایل</label>
+                        <input 
+                            type="file" 
+                            id="fileUpload"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            class="w-full px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black rounded-[12px]"
+                        >
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button 
+                        type="button" 
+                        class="w-full py-2 px-4 bg-black hover:bg-gray-700 text-white border border-gray-200 rounded-[12px] transition duration-200 active:underline"
+                        onclick="submitFile()"
+                    >
+                        ثبت فایل
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Overlay -->
+    <div id="logoutOverlay" class="fixed inset-0 bg-black bg-opacity-0 hidden transition-all duration-500" onclick="handleOverlayClick(event)">
+        <div id="logoutOverlayContent" class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-[12px] transform translate-y-[100vh] transition-all duration-500">
+            <div class="p-6">
+                <h2 class="text-xl font-bold mb-4 text-center">خروج از حساب کاربری</h2>
+                <p class="text-gray-600 text-center mb-6">آیا از خروج از حساب کاربری خود اطمینان دارید؟</p>
+                <div class="flex space-x-4 space-x-reverse">
+                    <button 
+                        onclick="confirmLogout()" 
+                        class="flex-1 py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-[12px] transition duration-200"
+                    >
+                        بله، خروج
+                    </button>
+                    <button 
+                        onclick="toggleLogoutOverlay()" 
+                        class="flex-1 py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-[12px] transition duration-200"
+                    >
+                        انصراف
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Material Persian Date Picker -->
+    <link rel="stylesheet" href="https://unpkg.com/@material/persian-datepicker@latest/dist/css/persian-datepicker.min.css">
+    <script src="https://unpkg.com/@material/persian-date@latest/dist/persian-date.min.js"></script>
+    <script src="https://unpkg.com/@material/persian-datepicker@latest/dist/js/persian-datepicker.min.js"></script>
+
+    <script>
+        // Check if user is logged in
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'loginPage.html';
+        }
+
+        // Show/hide delete button based on whether we're editing an existing case
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteButton = document.getElementById('deleteButton');
+            const currentCaseId = localStorage.getItem('currentCaseId');
+            
+            if (currentCaseId) {
+                deleteButton.classList.remove('hidden');
+            } else {
+                deleteButton.classList.add('hidden');
+            }
+        });
+
+        function toggleOverlay() {
+            const overlay = document.getElementById('overlay');
+            const overlayContent = document.getElementById('overlayContent');
+            
+            if (overlay.classList.contains('hidden')) {
+                // Show overlay
+                overlay.classList.remove('hidden');
+                // Trigger reflow
+                overlay.offsetHeight;
+                // Add opacity
+                overlay.classList.add('bg-opacity-50');
+                // Slide in content
+                overlayContent.classList.remove('translate-y-[100vh]');
+
+                // Initialize year options (1404-1409)
+                const yearSelect = document.getElementById('persianYear');
+                yearSelect.innerHTML = '<option value="">سال</option>';
+                for (let year = 1404; year <= 1409; year++) {
+                    yearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+                }
+
+                // Initialize day options (1-31)
+                const daySelect = document.getElementById('persianDay');
+                daySelect.innerHTML = '<option value="">روز</option>';
+                for (let day = 1; day <= 31; day++) {
+                    daySelect.innerHTML += `<option value="${day}">${day}</option>`;
+                }
+            } else {
+                // Clear form data
+                document.getElementById('persianYear').value = '';
+                document.getElementById('persianMonth').value = '';
+                document.getElementById('persianDay').value = '';
+                document.getElementById('description').value = '';
+                document.getElementById('wordCount').textContent = '0';
+
+                // Slide out content
+                overlayContent.classList.add('translate-y-[100vh]');
+                // Remove opacity
+                overlay.classList.remove('bg-opacity-50');
+                // Hide overlay after transition
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 500);
+            }
+        }
+
+        // Word count for description
+        document.getElementById('description').addEventListener('input', function() {
+            const text = this.value;
+            const wordCount = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+            document.getElementById('wordCount').textContent = wordCount;
+        });
+
+        // Add click event to the "افزودن" button
+        document.querySelector('button[type="button"]').addEventListener('click', toggleOverlay);
+
+        function submitTracking() {
+            const year = document.getElementById('persianYear').value;
+            const month = document.getElementById('persianMonth').value;
+            const day = document.getElementById('persianDay').value;
+            const description = document.getElementById('description').value;
+            
+            if (year && month && day && description) {
+                const monthNames = {
+                    '1': 'فروردین',
+                    '2': 'اردیبهشت',
+                    '3': 'خرداد',
+                    '4': 'تیر',
+                    '5': 'مرداد',
+                    '6': 'شهریور',
+                    '7': 'مهر',
+                    '8': 'آبان',
+                    '9': 'آذر',
+                    '10': 'دی',
+                    '11': 'بهمن',
+                    '12': 'اسفند'
+                };
+                
+                const formattedDate = `${year}/${monthNames[month]}/${day}`;
+                const trackingId = Date.now(); // Unique ID for each tracking item
+                
+                // Create tracking item data
+                const trackingData = {
+                    id: trackingId,
+                    date: formattedDate,
+                    description: description
+                };
+                
+                // Save to localStorage
+                const savedTrackings = JSON.parse(localStorage.getItem('trackings') || '[]');
+                savedTrackings.push(trackingData);
+                localStorage.setItem('trackings', JSON.stringify(savedTrackings));
+                
+                // Create tracking item HTML with better formatting
+                const trackingHTML = `
+                    <div id="tracking-${trackingId}" class="bg-white border border-gray-200 p-4 rounded-[12px]">
+                        <div class="flex justify-between items-start border-b border-gray-200 pb-2 mb-2">
+                            <span class="text-sm font-medium text-gray-700">${formattedDate}</span>
+                            <div class="flex gap-2">
+                                <button onclick="editTracking(${trackingId})" class="text-gray-500 hover:text-gray-700">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </button>
+                                <button onclick="removeTracking(${trackingId})" class="text-gray-500 hover:text-red-500">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 whitespace-pre-wrap">${description}</p>
+                    </div>
+                `;
+                
+                // Remove the "no tracking" message if it exists
+                const trackingList = document.getElementById('trackingList');
+                if (trackingList.querySelector('p.text-center')) {
+                    trackingList.innerHTML = '';
+                }
+                
+                // Append the new tracking item
+                trackingList.insertAdjacentHTML('afterbegin', trackingHTML);
+                
+                // Clear the form
+                document.getElementById('persianYear').value = '';
+                document.getElementById('persianMonth').value = '';
+                document.getElementById('persianDay').value = '';
+                document.getElementById('description').value = '';
+                document.getElementById('wordCount').textContent = '0';
+                
+                // Close the overlay
+                toggleOverlay();
+            }
+        }
+
+        function removeTracking(id) {
+            const trackingItem = document.getElementById(`tracking-${id}`);
+            if (trackingItem) {
+                trackingItem.remove();
+                
+                // Remove from localStorage
+                const savedTrackings = JSON.parse(localStorage.getItem('trackings') || '[]');
+                const updatedTrackings = savedTrackings.filter(tracking => tracking.id !== id);
+                localStorage.setItem('trackings', JSON.stringify(updatedTrackings));
+                
+                // If no tracking items left, show the "no tracking" message
+                const trackingList = document.getElementById('trackingList');
+                if (!trackingList.children.length) {
+                    trackingList.innerHTML = '<p class="text-sm text-gray-500 mb-2 text-center">هنوز پیگیری ثبت نشده!</p>';
+                }
+            }
+        }
+
+        function editTracking(id) {
+            const trackingItem = document.getElementById(`tracking-${id}`);
+            if (trackingItem) {
+                const dateText = trackingItem.querySelector('span').textContent;
+                const description = trackingItem.querySelector('p').textContent;
+                
+                // Parse the date
+                const [year, monthName, day] = dateText.split('/');
+                const monthNames = {
+                    'فروردین': '1',
+                    'اردیبهشت': '2',
+                    'خرداد': '3',
+                    'تیر': '4',
+                    'مرداد': '5',
+                    'شهریور': '6',
+                    'مهر': '7',
+                    'آبان': '8',
+                    'آذر': '9',
+                    'دی': '10',
+                    'بهمن': '11',
+                    'اسفند': '12'
+                };
+                
+                // Set the form values
+                document.getElementById('persianYear').value = year;
+                document.getElementById('persianMonth').value = monthNames[monthName];
+                document.getElementById('persianDay').value = day;
+                document.getElementById('description').value = description;
+                document.getElementById('wordCount').textContent = description.trim().split(/\s+/).filter(word => word.length > 0).length;
+                
+                // Remove the old tracking item
+                removeTracking(id);
+                
+                // Open the overlay
+                toggleOverlay();
+            }
+        }
+
+        // Load saved trackings when page loads
+        function loadSavedTrackings() {
+            const savedTrackings = JSON.parse(localStorage.getItem('trackings') || '[]');
+            const trackingList = document.getElementById('trackingList');
+            
+            if (savedTrackings.length === 0) {
+                trackingList.innerHTML = '<p class="text-sm text-gray-500 mb-2 text-center">هنوز پیگیری ثبت نشده!</p>';
+                return;
+            }
+            
+            trackingList.innerHTML = '';
+            savedTrackings.forEach(tracking => {
+                const trackingHTML = `
+                    <div id="tracking-${tracking.id}" class="bg-white border border-gray-200 p-4 rounded-[12px]">
+                        <div class="flex justify-between items-start border-b border-gray-200 pb-2 mb-2">
+                            <span class="text-sm font-medium text-gray-700">${tracking.date}</span>
+                            <div class="flex gap-2">
+                                <button onclick="editTracking(${tracking.id})" class="text-gray-500 hover:text-gray-700">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </button>
+                                <button onclick="removeTracking(${tracking.id})" class="text-gray-500 hover:text-red-500">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 whitespace-pre-wrap">${tracking.description}</p>
+                    </div>
+                `;
+                trackingList.insertAdjacentHTML('afterbegin', trackingHTML);
+            });
+        }
+
+        // Add event listeners for form inputs to save to localStorage
+        document.getElementById('caseTitle').addEventListener('input', function() {
+            localStorage.setItem('caseTitle', this.value);
+        });
+
+        document.getElementById('lawyerName').addEventListener('input', function() {
+            localStorage.setItem('lawyerName', this.value);
+        });
+
+        document.getElementById('contractAmount').addEventListener('input', function() {
+            localStorage.setItem('contractAmount', this.value);
+        });
+
+        document.getElementById('percentage').addEventListener('input', function() {
+            localStorage.setItem('percentage', this.value);
+        });
+
+        // Add event listener for status radio buttons
+        document.querySelectorAll('input[name="status"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                localStorage.setItem('status', this.value);
+            });
+        });
+
+        // Function to load saved form data
+        function loadFormData() {
+            // Load text inputs
+            document.getElementById('caseTitle').value = localStorage.getItem('caseTitle') || '';
+            document.getElementById('lawyerName').value = localStorage.getItem('lawyerName') || '';
+            document.getElementById('contractAmount').value = localStorage.getItem('contractAmount') || '';
+            document.getElementById('percentage').value = localStorage.getItem('percentage') || '';
+
+            // Load status radio button
+            const savedStatus = localStorage.getItem('status');
+            if (savedStatus) {
+                document.querySelector(`input[name="status"][value="${savedStatus}"]`).checked = true;
+            }
+        }
+
+        // Load case data if editing
+        function loadCaseData() {
+            const currentCaseId = localStorage.getItem('currentCaseId');
+            const userPhone = localStorage.getItem('userPhone');
+            
+            if (currentCaseId) {
+                const cases = JSON.parse(localStorage.getItem(`cases_${userPhone}`) || '[]');
+                const caseData = cases.find(c => c.id === currentCaseId);
+                
+                if (caseData) {
+                    // Load basic case data
+                    document.getElementById('caseTitle').value = caseData.title || '';
+                    document.getElementById('contractAmount').value = caseData.contractAmount || '';
+                    document.getElementById('percentage').value = caseData.percentage || '';
+                    if (caseData.status) {
+                        document.querySelector(`input[name="status"][value="${caseData.status}"]`).checked = true;
+                    }
+                    
+                    // Load tracking items
+                    if (caseData.trackingItems && caseData.trackingItems.length > 0) {
+                        const trackingList = document.getElementById('trackingList');
+                        trackingList.innerHTML = '';
+                        caseData.trackingItems.forEach(item => {
+                            const trackingHTML = `
+                                <div id="tracking-${item.id}" class="bg-white border border-gray-200 p-4 rounded-[12px]">
+                                    <div class="flex justify-between items-start border-b border-gray-200 pb-2 mb-2">
+                                        <span class="text-sm font-medium text-gray-700">${item.date}</span>
+                                        <div class="flex gap-2">
+                                            <button onclick="editTracking(${item.id})" class="text-gray-500 hover:text-gray-700">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                </svg>
+                                            </button>
+                                            <button onclick="removeTracking(${item.id})" class="text-gray-500 hover:text-red-500">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-gray-600 whitespace-pre-wrap">${item.description}</p>
+                                </div>
+                            `;
+                            trackingList.insertAdjacentHTML('beforeend', trackingHTML);
+                        });
+                    }
+                    
+                    // Load received items
+                    if (caseData.receivedItems && caseData.receivedItems.length > 0) {
+                        const receivedList = document.getElementById('receivedList');
+                        receivedList.innerHTML = '';
+                        caseData.receivedItems.forEach(item => {
+                            const receivedHTML = `
+                                <div id="received-${item.id}" class="bg-white border border-gray-200 p-4 rounded-[12px]">
+                                    <div class="flex justify-between items-start border-b border-gray-200 pb-2 mb-2">
+                                        <span class="text-sm font-medium text-gray-700">${item.date}</span>
+                                        <div class="flex gap-2">
+                                            <button onclick="editReceived(${item.id})" class="text-gray-500 hover:text-gray-700">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                </svg>
+                                            </button>
+                                            <button onclick="removeReceived(${item.id})" class="text-gray-500 hover:text-red-500">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-gray-600">مبلغ: ${item.amount} میلیون تومان</p>
+                                </div>
+                            `;
+                            receivedList.insertAdjacentHTML('beforeend', receivedHTML);
+                        });
+                    }
+                    
+                    // Load files
+                    if (caseData.files && caseData.files.length > 0) {
+                        const filesList = document.getElementById('filesList');
+                        filesList.innerHTML = '';
+                        caseData.files.forEach(file => {
+                            const fileHTML = `
+                                <div id="file-${file.id}" class="bg-white border border-gray-200 p-4 rounded-[12px]">
+                                    <div class="flex justify-between items-start border-b border-gray-200 pb-2 mb-2">
+                                        <span class="text-sm font-medium text-gray-700">${file.title}</span>
+                                        <div class="flex gap-2">
+                                            <button onclick="viewFile(${file.id}); return false;" class="text-gray-500 hover:text-gray-700">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                </svg>
+                                            </button>
+                                            <button onclick="editFile(${file.id})" class="text-gray-500 hover:text-gray-700">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                </svg>
+                                            </button>
+                                            <button onclick="removeFile(${file.id})" class="text-gray-500 hover:text-red-500">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-gray-600">نوع فایل: ${file.type}</p>
+                                </div>
+                            `;
+                            filesList.insertAdjacentHTML('beforeend', fileHTML);
+                        });
+                    }
+                }
+            }
+        }
+
+        // Load form data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFormData();
+            loadCaseData();
+
+            // Add click event to the Received List "افزودن" button
+            document.getElementById('addReceivedBtn').addEventListener('click', toggleReceivedOverlay);
+            
+            // Add click event to the Files "افزودن" button
+            document.getElementById('addFileBtn').addEventListener('click', toggleFileOverlay);
+        });
+
+        // Handle form submission
+        document.getElementById('caseForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const title = document.getElementById('caseTitle').value;
+            const lawyerName = document.getElementById('lawyerName').value;
+            const contractAmount = document.getElementById('contractAmount').value;
+            const percentage = document.getElementById('percentage').value;
+            const status = document.querySelector('input[name="status"]:checked')?.value || 'initial-review';
+            
+            // Get tracking list items
+            const trackingItems = Array.from(document.querySelectorAll('#trackingList .bg-white')).map(item => ({
+                id: item.id.split('-')[1],
+                date: item.querySelector('span').textContent,
+                description: item.querySelector('p').textContent
+            }));
+            
+            // Get received list items
+            const receivedItems = Array.from(document.querySelectorAll('#receivedList .bg-white')).map(item => ({
+                id: item.id.split('-')[1],
+                date: item.querySelector('span').textContent,
+                amount: item.querySelector('p').textContent.split(': ')[1].split(' ')[0]
+            }));
+            
+            // Get files list
+            const files = Array.from(document.querySelectorAll('#filesList .bg-white')).map(item => {
+                const fileId = item.id.split('-')[1];
+                const savedFiles = JSON.parse(localStorage.getItem('files') || '[]');
+                return savedFiles.find(f => f.id.toString() === fileId);
+            }).filter(Boolean);
+
+            // Get the last tracking date if available
+            const lastUpdate = trackingItems.length > 0 ? trackingItems[0].date : 'بدون پیگیری';
+
+            // Create case object
+            const caseData = {
+                id: Date.now().toString(), // Generate unique ID
+                title,
+                lawyerName,
+                contractAmount,
+                percentage,
+                status,
+                trackingItems,
+                receivedItems,
+                files,
+                lastUpdate,
+                createdAt: new Date().toISOString()
+            };
+
+            // Get user's phone number
+            const userPhone = localStorage.getItem('userPhone');
+            
+            // Get existing cases for this user
+            const cases = JSON.parse(localStorage.getItem(`cases_${userPhone}`) || '[]');
+            
+            // Check if we're editing an existing case
+            const currentCaseId = localStorage.getItem('currentCaseId');
+            if (currentCaseId) {
+                // Update existing case
+                const caseIndex = cases.findIndex(c => c.id === currentCaseId);
+                if (caseIndex !== -1) {
+                    cases[caseIndex] = { ...cases[caseIndex], ...caseData };
+                }
+            } else {
+                // Add new case
+                cases.push(caseData);
+            }
+
+            // Save to localStorage with user-specific key
+            localStorage.setItem(`cases_${userPhone}`, JSON.stringify(cases));
+            
+            // Clear current case ID if it exists
+            localStorage.removeItem('currentCaseId');
+            localStorage.removeItem('caseTitle');
+            localStorage.removeItem('lawyerName');
+            localStorage.removeItem('contractAmount');
+            localStorage.removeItem('percentage');
+            localStorage.removeItem('status');
+            localStorage.removeItem('trackings');
+            localStorage.removeItem('received');
+            localStorage.removeItem('files');
+            
+            // Redirect to panel first page
+            window.location.href = 'panelFirstPage.html';
+        });
+
+        function toggleReceivedOverlay() {
+            const overlay = document.getElementById('receivedOverlay');
+            const overlayContent = document.getElementById('receivedOverlayContent');
+            
+            if (overlay.classList.contains('hidden')) {
+                // Show overlay
+                overlay.classList.remove('hidden');
+                // Trigger reflow
+                overlay.offsetHeight;
+                // Add opacity
+                overlay.classList.add('bg-opacity-50');
+                // Slide in content
+                overlayContent.classList.remove('translate-y-[100vh]');
+
+                // Initialize year options (1404-1409)
+                const yearSelect = document.getElementById('receivedYear');
+                yearSelect.innerHTML = '<option value="">سال</option>';
+                for (let year = 1404; year <= 1409; year++) {
+                    yearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+                }
+
+                // Initialize day options (1-31)
+                const daySelect = document.getElementById('receivedDay');
+                daySelect.innerHTML = '<option value="">روز</option>';
+                for (let day = 1; day <= 31; day++) {
+                    daySelect.innerHTML += `<option value="${day}">${day}</option>`;
+                }
+            } else {
+                // Clear form data
+                document.getElementById('receivedYear').value = '';
+                document.getElementById('receivedMonth').value = '';
+                document.getElementById('receivedDay').value = '';
+                document.getElementById('receivedAmount').value = '';
+
+                // Slide out content
+                overlayContent.classList.add('translate-y-[100vh]');
+                // Remove opacity
+                overlay.classList.remove('bg-opacity-50');
+                // Hide overlay after transition
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 500);
+            }
+        }
+
+        function submitReceived() {
+            const year = document.getElementById('receivedYear').value;
+            const month = document.getElementById('receivedMonth').value;
+            const day = document.getElementById('receivedDay').value;
+            const amount = document.getElementById('receivedAmount').value;
+            
+            if (year && month && day && amount) {
+                const monthNames = {
+                    '1': 'فروردین',
+                    '2': 'اردیبهشت',
+                    '3': 'خرداد',
+                    '4': 'تیر',
+                    '5': 'مرداد',
+                    '6': 'شهریور',
+                    '7': 'مهر',
+                    '8': 'آبان',
+                    '9': 'آذر',
+                    '10': 'دی',
+                    '11': 'بهمن',
+                    '12': 'اسفند'
+                };
+                
+                const formattedDate = `${year}/${monthNames[month]}/${day}`;
+                const receivedId = Date.now(); // Unique ID for each received item
+                
+                // Create received item data
+                const receivedData = {
+                    id: receivedId,
+                    date: formattedDate,
+                    amount: amount
+                };
+                
+                // Save to localStorage
+                const savedReceived = JSON.parse(localStorage.getItem('received') || '[]');
+                savedReceived.push(receivedData);
+                localStorage.setItem('received', JSON.stringify(savedReceived));
+                
+                // Create received item HTML
+                const receivedHTML = `
+                    <div id="received-${receivedId}" class="bg-white border border-gray-200 p-4 rounded-[12px]">
+                        <div class="flex justify-between items-start border-b border-gray-200 pb-2 mb-2">
+                            <span class="text-sm font-medium text-gray-700">${formattedDate}</span>
+                            <div class="flex gap-2">
+                                <button onclick="editReceived(${receivedId})" class="text-gray-500 hover:text-gray-700">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </button>
+                                <button onclick="removeReceived(${receivedId})" class="text-gray-500 hover:text-red-500">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600">مبلغ: ${amount} میلیون تومان</p>
+                    </div>
+                `;
+                
+                // Remove the "no received" message if it exists
+                const receivedList = document.getElementById('receivedList');
+                if (receivedList.querySelector('p.text-center')) {
+                    receivedList.innerHTML = '';
+                }
+                
+                // Append the new received item
+                receivedList.insertAdjacentHTML('afterbegin', receivedHTML);
+                
+                // Clear the form
+                document.getElementById('receivedYear').value = '';
+                document.getElementById('receivedMonth').value = '';
+                document.getElementById('receivedDay').value = '';
+                document.getElementById('receivedAmount').value = '';
+                
+                // Close the overlay
+                toggleReceivedOverlay();
+            }
+        }
+
+        function removeReceived(id) {
+            const receivedItem = document.getElementById(`received-${id}`);
+            if (receivedItem) {
+                receivedItem.remove();
+                
+                // Remove from localStorage
+                const savedReceived = JSON.parse(localStorage.getItem('received') || '[]');
+                const updatedReceived = savedReceived.filter(item => item.id !== id);
+                localStorage.setItem('received', JSON.stringify(updatedReceived));
+                
+                // If no received items left, show the "no received" message
+                const receivedList = document.getElementById('receivedList');
+                if (!receivedList.children.length) {
+                    receivedList.innerHTML = '<p class="text-sm text-gray-500 mt-2 text-center mb-2">هنوز دریافتی ثبت نشده است!</p>';
+                }
+            }
+        }
+
+        function editReceived(id) {
+            const receivedItem = document.getElementById(`received-${id}`);
+            if (receivedItem) {
+                const dateText = receivedItem.querySelector('span').textContent;
+                const amount = receivedItem.querySelector('p').textContent.split(': ')[1].split(' ')[0];
+                
+                // Parse the date
+                const [year, monthName, day] = dateText.split('/');
+                const monthNames = {
+                    'فروردین': '1',
+                    'اردیبهشت': '2',
+                    'خرداد': '3',
+                    'تیر': '4',
+                    'مرداد': '5',
+                    'شهریور': '6',
+                    'مهر': '7',
+                    'آبان': '8',
+                    'آذر': '9',
+                    'دی': '10',
+                    'بهمن': '11',
+                    'اسفند': '12'
+                };
+                
+                // Set the form values
+                document.getElementById('receivedYear').value = year;
+                document.getElementById('receivedMonth').value = monthNames[monthName];
+                document.getElementById('receivedDay').value = day;
+                document.getElementById('receivedAmount').value = amount;
+                
+                // Remove the old received item
+                removeReceived(id);
+                
+                // Open the overlay
+                toggleReceivedOverlay();
+            }
+        }
+
+        // Load saved received items when page loads
+        function loadSavedReceived() {
+            const savedReceived = JSON.parse(localStorage.getItem('received') || '[]');
+            const receivedList = document.getElementById('receivedList');
+            
+            if (savedReceived.length === 0) {
+                return;
+            }
+            
+            // Remove the "no received" message if it exists
+            if (receivedList.querySelector('p.text-center')) {
+                receivedList.innerHTML = '';
+            }
+            
+            savedReceived.forEach(item => {
+                const receivedHTML = `
+                    <div id="received-${item.id}" class="bg-white border border-gray-200 p-4 rounded-[12px]">
+                        <div class="flex justify-between items-start border-b border-gray-200 pb-2 mb-2">
+                            <span class="text-sm font-medium text-gray-700">${item.date}</span>
+                            <div class="flex gap-2">
+                                <button onclick="editReceived(${item.id})" class="text-gray-500 hover:text-gray-700">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </button>
+                                <button onclick="removeReceived(${item.id})" class="text-gray-500 hover:text-red-500">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600">مبلغ: ${item.amount} میلیون تومان</p>
+                    </div>
+                `;
+                receivedList.insertAdjacentHTML('afterbegin', receivedHTML);
+            });
+        }
+
+        // Add click event to the Files "افزودن" button
+        document.getElementById('addFileBtn').addEventListener('click', toggleFileOverlay);
+
+        function toggleFileOverlay() {
+            const overlay = document.getElementById('fileOverlay');
+            const overlayContent = document.getElementById('fileOverlayContent');
+            
+            if (overlay.classList.contains('hidden')) {
+                // Show overlay
+                overlay.classList.remove('hidden');
+                // Trigger reflow
+                overlay.offsetHeight;
+                // Add opacity
+                overlay.classList.add('bg-opacity-50');
+                // Slide in content
+                overlayContent.classList.remove('translate-y-[100vh]');
+            } else {
+                // Clear form data
+                document.getElementById('fileTitle').value = '';
+                document.getElementById('fileUpload').value = '';
+
+                // Slide out content
+                overlayContent.classList.add('translate-y-[100vh]');
+                // Remove opacity
+                overlay.classList.remove('bg-opacity-50');
+                // Hide overlay after transition
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 500);
+            }
+        }
+
+        function submitFile() {
+            const fileTitle = document.getElementById('fileTitle').value;
+            const fileInput = document.getElementById('fileUpload');
+            const file = fileInput.files[0];
+            
+            if (fileTitle && file) {
+                const fileId = Date.now();
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const fileData = {
+                        id: fileId,
+                        title: fileTitle,
+                        type: file.type,
+                        data: e.target.result
+                    };
+                    
+                    // Save to localStorage
+                    const savedFiles = JSON.parse(localStorage.getItem('files') || '[]');
+                    savedFiles.push(fileData);
+                    localStorage.setItem('files', JSON.stringify(savedFiles));
+                    
+                    // Create file item HTML
+                    const fileHTML = `
+                        <div id="file-${fileId}" class="bg-white border border-gray-200 p-4 rounded-[12px]">
+                            <div class="flex justify-between items-start border-b border-gray-200 pb-2 mb-2">
+                                <span class="text-sm font-medium text-gray-700">${fileTitle}</span>
+                                <div class="flex gap-2">
+                                    <button onclick="viewFile(${fileId}); return false;" class="text-gray-500 hover:text-gray-700">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </button>
+                                    <button onclick="editFile(${fileId})" class="text-gray-500 hover:text-gray-700">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </button>
+                                    <button onclick="removeFile(${fileId})" class="text-gray-500 hover:text-red-500">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600">نوع فایل: ${file.type}</p>
+                        </div>
+                    `;
+                    
+                    // Remove the "no files" message if it exists
+                    const filesList = document.getElementById('filesList');
+                    if (filesList.querySelector('p.text-center')) {
+                        filesList.innerHTML = '';
+                    }
+                    
+                    // Append the new file item
+                    filesList.insertAdjacentHTML('afterbegin', fileHTML);
+                    
+                    // Clear the form
+                    document.getElementById('fileTitle').value = '';
+                    document.getElementById('fileUpload').value = '';
+                    
+                    // Close the overlay
+                    toggleFileOverlay();
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function viewFile(id) {
+            const savedFiles = JSON.parse(localStorage.getItem('files') || '[]');
+            const file = savedFiles.find(f => f.id === id);
+            
+            if (file) {
+                // Create a temporary link element
+                const link = document.createElement('a');
+                link.href = file.data;
+                link.target = '_blank';
+                link.download = file.title; // Set download filename
+                
+                // For PDFs, ensure proper download
+                if (file.type === 'application/pdf') {
+                    link.setAttribute('download', `${file.title}.pdf`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } else {
+                    // For images, trigger download
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+                
+                // Prevent any default navigation
+                return false;
+            }
+        }
+
+        function editFile(id) {
+            const savedFiles = JSON.parse(localStorage.getItem('files') || '[]');
+            const file = savedFiles.find(f => f.id === id);
+            
+            if (file) {
+                document.getElementById('fileTitle').value = file.title;
+                toggleFileOverlay();
+                removeFile(id);
+            }
+        }
+
+        function removeFile(id) {
+            const fileItem = document.getElementById(`file-${id}`);
+            if (fileItem) {
+                fileItem.remove();
+                
+                // Remove from localStorage
+                const savedFiles = JSON.parse(localStorage.getItem('files') || '[]');
+                const updatedFiles = savedFiles.filter(file => file.id !== id);
+                localStorage.setItem('files', JSON.stringify(updatedFiles));
+                
+                // If no files left, show the "no files" message
+                const filesList = document.getElementById('filesList');
+                if (!filesList.children.length) {
+                    filesList.innerHTML = '<p class="text-sm text-gray-500 mt-2 text-center mb-2">هنوز فایلی ثبت نشده است!</p>';
+                }
+            }
+        }
+
+        // Load saved files when page loads
+        function loadSavedFiles() {
+            const savedFiles = JSON.parse(localStorage.getItem('files') || '[]');
+            const filesList = document.getElementById('filesList');
+            
+            if (savedFiles.length === 0) {
+                return;
+            }
+            
+            // Remove the "no files" message if it exists
+            if (filesList.querySelector('p.text-center')) {
+                filesList.innerHTML = '';
+            }
+            
+            savedFiles.forEach(file => {
+                const fileHTML = `
+                    <div id="file-${file.id}" class="bg-white border border-gray-200 p-4 rounded-[12px]">
+                        <div class="flex justify-between items-start border-b border-gray-200 pb-2 mb-2">
+                            <span class="text-sm font-medium text-gray-700">${file.title}</span>
+                            <div class="flex gap-2">
+                                <button onclick="viewFile(${file.id}); return false;" class="text-gray-500 hover:text-gray-700">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                </button>
+                                <button onclick="editFile(${file.id})" class="text-gray-500 hover:text-gray-700">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </button>
+                                <button onclick="removeFile(${file.id})" class="text-gray-500 hover:text-red-500">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600">نوع فایل: ${file.type}</p>
+                    </div>
+                `;
+                filesList.insertAdjacentHTML('afterbegin', fileHTML);
+            });
+        }
+
+        // Add this function to handle case removal
+        function removeCase() {
+            const currentCaseId = localStorage.getItem('currentCaseId');
+            const userPhone = localStorage.getItem('userPhone');
+            
+            if (currentCaseId) {
+                // Get existing cases for this user
+                const cases = JSON.parse(localStorage.getItem(`cases_${userPhone}`) || '[]');
+                
+                // Remove the case - ensure we're comparing strings
+                const updatedCases = cases.filter(c => c.id.toString() !== currentCaseId.toString());
+                
+                // Save updated cases
+                localStorage.setItem(`cases_${userPhone}`, JSON.stringify(updatedCases));
+                
+                // Clear all related data
+                localStorage.removeItem('currentCaseId');
+                localStorage.removeItem('caseTitle');
+                localStorage.removeItem('lawyerName');
+                localStorage.removeItem('contractAmount');
+                localStorage.removeItem('percentage');
+                localStorage.removeItem('status');
+                localStorage.removeItem('trackings');
+                localStorage.removeItem('received');
+                localStorage.removeItem('files');
+                
+                // Navigate back to panel first page
+                window.location.href = 'panelFirstPage.html';
+            } else {
+                // If no currentCaseId, just go back to panel page
+                window.location.href = 'panelFirstPage.html';
+            }
+        }
+
+        // Toggle logout overlay
+        function toggleLogoutOverlay() {
+            const overlay = document.getElementById('logoutOverlay');
+            const overlayContent = document.getElementById('logoutOverlayContent');
+            
+            if (overlay.classList.contains('hidden')) {
+                // Show overlay
+                overlay.classList.remove('hidden');
+                // Trigger reflow
+                overlay.offsetHeight;
+                // Add opacity
+                overlay.classList.add('bg-opacity-50');
+                // Slide in content
+                overlayContent.classList.remove('translate-y-[100vh]');
+            } else {
+                // Slide out content
+                overlayContent.classList.add('translate-y-[100vh]');
+                // Remove opacity
+                overlay.classList.remove('bg-opacity-50');
+                // Hide overlay after transition
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 500);
+            }
+        }
+
+        // Handle click outside overlay
+        function handleOverlayClick(event) {
+            const overlay = document.getElementById('logoutOverlay');
+            const overlayContent = document.getElementById('logoutOverlayContent');
+            
+            // Check if the click was on the overlay background (not the content)
+            if (event.target === overlay) {
+                toggleLogoutOverlay();
+            }
+        }
+
+        // Logout
+        function logout() {
+            toggleLogoutOverlay();
+        }
+
+        // Confirm logout
+        function confirmLogout() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userPhone');
+            window.location.href = 'loginPage.html';
+        }
+
+        // Function to update user info in header
+        function updateUserInfo() {
+            const userPhone = localStorage.getItem('userPhone');
+            const usernameElement = document.querySelector('.flex.flex-col span:first-child');
+            const phoneElement = document.querySelector('.flex.flex-col span:last-child');
+
+            if (userPhone === '09127228972') {
+                usernameElement.textContent = 'نبی رحیمی';
+                phoneElement.textContent = '09127228972';
+            } else if (userPhone === '09128434782') {
+                usernameElement.textContent = 'علی رحیمی';
+                phoneElement.textContent = '09128434782';
+            }
+        }
+
+        // Update user info when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUserInfo();
+        });
+
+        function validateAndSubmit(event) {
+            event.preventDefault();
+            
+            // Reset previous error states
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.error-input').forEach(el => el.classList.remove('error-input'));
+            document.querySelectorAll('.error-label').forEach(el => el.classList.remove('error-label'));
+            
+            let isValid = true;
+            
+            // Validate case title
+            const caseTitle = document.getElementById('caseTitle').value.trim();
+            if (!caseTitle) {
+                document.getElementById('caseTitleError').style.display = 'block';
+                document.getElementById('caseTitle').classList.add('error-input');
+                document.getElementById('caseTitleLabel').classList.add('error-label');
+                isValid = false;
+            }
+            
+            // Validate status
+            const status = document.querySelector('input[name="status"]:checked');
+            if (!status) {
+                document.getElementById('statusError').style.display = 'block';
+                document.getElementById('statusLabel').classList.add('error-label');
+                isValid = false;
+            }
+            
+            if (isValid) {
+                // Trigger the form's submit event
+                const form = document.getElementById('caseForm');
+                const submitEvent = new Event('submit', {
+                    bubbles: true,
+                    cancelable: true
+                });
+                form.dispatchEvent(submitEvent);
+            }
+        }
+
+        // Add this function to handle case cancellation
+        function cancelCase() {
+            // Clear all form-related data from localStorage
+            localStorage.removeItem('currentCaseId');
+            localStorage.removeItem('caseTitle');
+            localStorage.removeItem('lawyerName');
+            localStorage.removeItem('contractAmount');
+            localStorage.removeItem('percentage');
+            localStorage.removeItem('status');
+            localStorage.removeItem('trackings');
+            localStorage.removeItem('received');
+            localStorage.removeItem('files');
+            
+            // Navigate back to panel first page
+            window.location.href = 'panelFirstPage.html';
+        }
+    </script>
+</body>
+</html>

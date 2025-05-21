@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نرم افزار مدیریت پرونده وکالت</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @font-face {
+            font-family: 'Kalameh';
+            src: url('Fonts/KalamehFaNum-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Kalameh';
+            src: url('Fonts/KalamehFaNum-Bold.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Kalameh';
+            src: url('Fonts/KalamehFaNum-Thin.ttf') format('truetype');
+            font-weight: 100;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Kalameh';
+            src: url('Fonts/KalamehFaNum-Black.ttf') format('truetype');
+            font-weight: 900;
+            font-style: normal;
+        }
+        body {
+            font-family: 'Kalameh', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen flex flex-col items-center justify-start p-4">
+        <!-- Logo and Title -->
+        <div class="mt-8 mb-12 flex flex-col items-center">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mb-1">
+                <img src="Pictures/Logo.png" alt="Logo" class="w-12 h-12 object-contain">
+            </div>
+            <h1 class="text-1xl font-bold text-gray-800 text-center">
+                نرم افزار مدیریت پرونده وکالت
+            </h1>
+        </div>
+
+        <!-- Login Form -->
+        <div class="w-full max-w-md bg-white border border-gray-200 p-6 rounded-[12px]">
+            <div class="flex flex-col items-center mb-6">
+                <div class="w-12 h-12 rounded-[12px] flex items-center justify-center mb-2">
+                    <img src="Pictures/Sign_in_squre_light.svg" alt="Sign in icon" class="h-12 w-12">
+                </div>
+                <h2 class="text-2xl font-regular text-gray-700">ورود به حساب کاربری</h2>
+            </div>
+
+            <form id="loginForm" class="space-y-6">
+                <!-- Phone Number Field -->
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
+                        شماره تماس
+                    </label>
+                    <div class="relative rounded-[12px] shadow-sm">
+                        <input
+                            type="tel"
+                            id="phone"
+                            class="block w-full pr-3 py-3 border border-gray-300 rounded-[12px] text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 text-right"
+                            placeholder="شماره تماس خود را وارد نمایید"
+                            required
+                        />
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+                        رمز عبور
+                    </label>
+                    <div class="relative rounded-[12px] shadow-sm">
+                        <input
+                            type="password"
+                            id="password"
+                            class="block w-full pr-3 py-3 border border-gray-300 rounded-[12px] text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                            placeholder="رمز عبور خود را وارد نمایید"
+                            required
+                        />
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div>
+                    <button
+                        type="submit"
+                        class="w-full flex justify-center py-3 px-4 border border-black rounded-[12px] shadow-sm text-lg font-medium text-white bg-black hover:bg-gray-800 active:bg-gray-700 focus:outline-none transition-colors duration-200"
+                    >
+                        ورود
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const phoneNumber = document.getElementById('phone').value;
+            const password = document.getElementById('password').value;
+            
+            // Check for both users
+            if ((phoneNumber === '09128434782' && password === 'Ali_1378') || 
+                (phoneNumber === '09127228972' && password === 'Nb_1345')) {
+                // Store login state and user phone
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('userPhone', phoneNumber);
+                // Navigate to panel first page
+                window.location.href = 'panelFirstPage.html';
+            } else {
+                alert('شماره تماس یا رمز عبور اشتباه است!');
+            }
+        });
+    </script>
+</body>
+</html>

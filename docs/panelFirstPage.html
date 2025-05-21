@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @font-face {
+            font-family: 'Kalameh';
+            src: url('Fonts/KalamehFaNum-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Kalameh';
+            src: url('Fonts/KalamehFaNum-Bold.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Kalameh';
+            src: url('Fonts/KalamehFaNum-Thin.ttf') format('truetype');
+            font-weight: 100;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Kalameh';
+            src: url('Fonts/KalamehFaNum-Black.ttf') format('truetype');
+            font-weight: 900;
+            font-style: normal;
+        }
+        body {
+            font-family: 'Kalameh', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <header class="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-50">
+        <div class="h-full flex items-center justify-between px-4">
+            <!-- Left side content -->
+            <div class="flex items-center">
+                <!-- Logo -->
+                <div class="h-10 w-10 rounded-[12px]">
+                    <img src="Pictures/Logo.png" alt="Logo" class="h-full w-full object-contain">
+                </div>
+
+                <!-- Vertical Line -->
+                <div class="h-8 w-[1px] bg-gray-200 mx-4"></div>
+
+                <!-- Text Rows -->
+                <div class="flex flex-col">
+                    <span class="text-sm text-gray-600">نام کاربری</span>
+                    <span class="text-sm text-gray-500">شماره موبایل</span>
+                </div>
+            </div>
+
+            <!-- Logout button on the right -->
+            <div class="h-10 w-10 rounded-[12px] hover:bg-gray-100 transition-all duration-200 p-1 flex items-center justify-center cursor-pointer" onclick="logout()">
+                <img src="Pictures/Sign_out_squre_light.svg" alt="Profile" class="h-8 w-8 object-contain transition-all duration-200">
+            </div>
+        </div>
+    </header>
+
+    
+    <!-- Main Content -->
+    <main class="pt-16 px-4">
+        <div class="max-w-md mx-auto space-y-4">
+            <!-- Case Card 1 -->
+            <div class="bg-white overflow-hidden mt-4 border border-gray-200 rounded-[12px]">
+                <!-- Card Header -->
+                <div class="p-4 border-b border-gray-200">
+                    <h1 class="text-lg text-gray-800">پرونده علی رحیمی | جنایی</h1>
+                </div>
+                
+                <!-- Card Content -->
+                <div class="p-4">
+                    <div class="grid grid-cols-12 gap-4 mb-4">
+                        <!-- Last Update -->
+                        <div class="col-span-3 text-center">
+                            <div class="text-sm text-gray-500">آخرین پیگیری</div>
+                            <div class="text-base mt-1">۱۴۰۲/۰۵/۱۵</div>
+                        </div>
+                        
+                        <!-- Lawyer Name -->
+                        <div class="col-span-6 text-center">
+                            <div class="text-sm text-gray-500">وکیل</div>
+                            <div class="text-base mt-1">علی رحیمی</div>
+                        </div>
+                        
+                        <!-- Project Status -->
+                        <div class="col-span-3 text-center">
+                            <div class="text-sm text-gray-500">وضعیت پرونده</div>
+                            <div class="text-base mt-1">در حال انجام</div>
+                        </div>
+                    </div>
+                    
+                    <!-- View More Button -->
+                    <button 
+                        onclick="viewCaseDetails('${caseItem.id}')" 
+                        class="w-full py-2 px-4 bg-black hover:bg-gray-800 text-white rounded-[12px] transition duration-200 active:underline"
+                    >
+                        اطلاعات بیشتر
+                    </button>
+                </div>
+            </div>
+
+            <!-- Case Card 2 -->
+            <div class="bg-white overflow-hidden border border-gray-200">
+                <!-- Card Header -->
+                <div class="p-4 border-b border-gray-200">
+                    <h1 class="text-lg text-gray-800">پرونده محمد کریمی | حقوقی</h1>
+                </div>
+                
+                <!-- Card Content -->
+                <div class="p-4">
+                    <div class="grid grid-cols-12 gap-4 mb-4">
+                        <!-- Last Update -->
+                        <div class="col-span-3 text-center">
+                            <div class="text-sm text-gray-500">آخرین پیگیری</div>
+                            <div class="text-base mt-1">۱۴۰۲/۰۵/۱۰</div>
+                        </div>
+                        
+                        <!-- Lawyer Name -->
+                        <div class="col-span-6 text-center">
+                            <div class="text-sm text-gray-500">وکیل</div>
+                            <div class="text-base mt-1">علی رحیمی</div>
+                        </div>
+                        
+                        <!-- Project Status -->
+                        <div class="col-span-3 text-center">
+                            <div class="text-sm text-gray-500">وضعیت پرونده</div>
+                            <div class="text-base mt-1">در انتظار</div>
+                        </div>
+                    </div>
+                    
+                    <!-- View More Button -->
+                    <button 
+                        onclick="viewCaseDetails('${caseItem.id}')" 
+                        class="w-full py-2 px-4 bg-black hover:bg-gray-800 text-white rounded-none transition duration-200 active:underline"
+                    >
+                        مشاهده اطلاعات بیشتر
+                    </button>
+                </div>
+            </div>
+
+            <!-- Case Card 3 -->
+            <div class="bg-white overflow-hidden border border-gray-200">
+                <!-- Card Header -->
+                <div class="p-4 border-b border-gray-200">
+                    <h1 class="text-lg text-gray-800">پرونده سارا احمدی | خانواده</h1>
+                </div>
+                
+                <!-- Card Content -->
+                <div class="p-4">
+                    <div class="grid grid-cols-12 gap-4 mb-4">
+                        <!-- Last Update -->
+                        <div class="col-span-3 text-center">
+                            <div class="text-sm text-gray-500">آخرین پیگیری</div>
+                            <div class="text-base mt-1">۱۴۰۲/۰۵/۰۸</div>
+                        </div>
+                        
+                        <!-- Lawyer Name -->
+                        <div class="col-span-6 text-center">
+                            <div class="text-sm text-gray-500">وکیل</div>
+                            <div class="text-base mt-1">علی رحیمی</div>
+                        </div>
+                        
+                        <!-- Project Status -->
+                        <div class="col-span-3 text-center">
+                            <div class="text-sm text-gray-500">وضعیت پرونده</div>
+                            <div class="text-base mt-1">تکمیل شده</div>
+                        </div>
+                    </div>
+                    
+                    <!-- View More Button -->
+                    <button 
+                        onclick="viewCaseDetails('${caseItem.id}')" 
+                        class="w-full py-2 px-4 bg-black hover:bg-gray-800 text-white rounded-none transition duration-200 active:underline"
+                    >
+                        مشاهده اطلاعات بیشتر
+                    </button>
+                </div>
+            </div>
+
+            <!-- Case Card 4 -->
+            <div class="bg-white overflow-hidden mb-4 border border-gray-200">
+                <!-- Card Header -->
+                <div class="p-4 border-b border-gray-200">
+                    <h1 class="text-lg text-gray-800">پرونده رضا محمدی | تجاری</h1>
+                </div>
+                
+                <!-- Card Content -->
+                <div class="p-4">
+                    <div class="grid grid-cols-12 gap-4 mb-4">
+                        <!-- Last Update -->
+                        <div class="col-span-3 text-center">
+                            <div class="text-sm text-gray-500">آخرین پیگیری</div>
+                            <div class="text-base mt-1">۱۴۰۲/۰۵/۰۵</div>
+                        </div>
+                        
+                        <!-- Lawyer Name -->
+                        <div class="col-span-6 text-center">
+                            <div class="text-sm text-gray-500">وکیل</div>
+                            <div class="text-base mt-1">علی رحیمی</div>
+                        </div>
+                        
+                        <!-- Project Status -->
+                        <div class="col-span-3 text-center">
+                            <div class="text-sm text-gray-500">وضعیت پرونده</div>
+                            <div class="text-base mt-1">در حال انجام</div>
+                        </div>
+                    </div>
+                    
+                    <!-- View More Button -->
+                    <button 
+                        onclick="viewCaseDetails('${caseItem.id}')" 
+                        class="w-full py-2 px-4 bg-black hover:bg-gray-800 text-white rounded-none transition duration-200 active:underline"
+                    >
+                        مشاهده اطلاعات بیشتر
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Fixed White Box -->
+    <div class="fixed bottom-10 left-10 bg-white border border-gray-200 p-3 hover:bg-gray-100 transition-colors duration-200 shadow-lg cursor-pointer rounded-[12px]" onclick="addNewCase()">
+        <img src="Pictures/Add_light.svg" alt="Add" class="w-6 h-6">
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-0 hidden transition-all duration-500">
+        <div id="overlayContent" class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md h-[80vh] bg-white rounded-[12px] transform translate-y-[100vh] transition-all duration-500">
+            <div class="p-4 h-full flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">افزودن پرونده جدید</h2>
+                    <button onclick="toggleOverlay()" class="p-2 hover:bg-gray-100 rounded-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto">
+                    <!-- Add your form content here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Case Details Overlay -->
+    <div id="caseDetailsOverlay" class="fixed inset-0 bg-black bg-opacity-0 hidden transition-all duration-500">
+        <div id="caseDetailsContent" class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md h-[80vh] bg-white rounded-[12px] transform translate-y-[100vh] transition-all duration-500">
+            <div class="p-4 h-full flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold" id="caseDetailsTitle">جزئیات پرونده</h2>
+                    <button onclick="toggleCaseDetailsOverlay()" class="p-2 hover:bg-gray-100 rounded-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto space-y-4">
+                    <!-- Basic Info -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-bold mb-2">اطلاعات پایه</h3>
+                        <div class="space-y-2">
+                            <div>
+                                <span class="text-sm text-gray-500">عنوان پرونده:</span>
+                                <p id="caseTitle" class="text-base"></p>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-500">مبلغ قرارداد:</span>
+                                <p id="caseContractAmount" class="text-base"></p>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-500">درصد شما:</span>
+                                <p id="casePercentage" class="text-base"></p>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-500">وضعیت پرونده:</span>
+                                <p id="caseStatus" class="text-base"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tracking Items -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-bold mb-2">لیست پیگیری‌ها</h3>
+                        <div id="caseTrackingList" class="space-y-2">
+                            <!-- Tracking items will be inserted here -->
+                        </div>
+                    </div>
+
+                    <!-- Received Items -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-bold mb-2">لیست دریافتی‌ها</h3>
+                        <div id="caseReceivedList" class="space-y-2">
+                            <!-- Received items will be inserted here -->
+                        </div>
+                    </div>
+
+                    <!-- Files -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-bold mb-2">فایل‌ها</h3>
+                        <div id="caseFilesList" class="space-y-2">
+                            <!-- Files will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Overlay -->
+    <div id="logoutOverlay" class="fixed inset-0 bg-black bg-opacity-0 hidden transition-all duration-500" onclick="handleOverlayClick(event)">
+        <div id="logoutOverlayContent" class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-[12px] transform translate-y-[100vh] transition-all duration-500">
+            <div class="p-6">
+                <h2 class="text-xl font-bold mb-4 text-center">خروج از حساب کاربری</h2>
+                <p class="text-gray-600 text-center mb-6">آیا از خروج از حساب کاربری خود اطمینان دارید؟</p>
+                <div class="flex space-x-4 space-x-reverse">
+                    <button 
+                        onclick="confirmLogout()" 
+                        class="flex-1 py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-[12px] transition duration-200"
+                    >
+                        بله، خروج
+                    </button>
+                    <button 
+                        onclick="toggleLogoutOverlay()" 
+                        class="flex-1 py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-[12px] transition duration-200"
+                    >
+                        انصراف
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is logged in
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'loginPage.html';
+        }
+
+        // Function to update user info in header
+        function updateUserInfo() {
+            const userPhone = localStorage.getItem('userPhone');
+            const usernameElement = document.querySelector('.flex.flex-col span:first-child');
+            const phoneElement = document.querySelector('.flex.flex-col span:last-child');
+
+            if (userPhone === '09127228972') {
+                usernameElement.textContent = 'نبی رحیمی';
+                phoneElement.textContent = '09127228972';
+            } else if (userPhone === '09128434782') {
+                usernameElement.textContent = 'علی رحیمی';
+                phoneElement.textContent = '09128434782';
+            }
+        }
+
+        // Load cases from localStorage
+        function loadCases() {
+            const userPhone = localStorage.getItem('userPhone');
+            const cases = JSON.parse(localStorage.getItem(`cases_${userPhone}`) || '[]');
+            const mainContent = document.querySelector('main .max-w-md');
+            
+            if (cases.length === 0) {
+                mainContent.innerHTML = '<div class="h-[calc(100vh-4rem)] flex items-center justify-center"><p class="text-lg text-gray-500">هنوز پرونده ای ثبت نشده!</p></div>';
+                return;
+            }
+            
+            // Clear existing content
+            mainContent.innerHTML = '';
+            
+            // Display cases in reverse order (newest first)
+            cases.slice().reverse().forEach(caseItem => {
+                const caseHTML = `
+                    <div class="bg-white overflow-hidden mt-4 border border-gray-200 rounded-[12px]">
+                        <!-- Card Header -->
+                        <div class="p-4 border-b border-gray-200">
+                            <h1 class="text-lg text-gray-800">${caseItem.title}</h1>
+                        </div>
+                        
+                        <!-- Card Content -->
+                        <div class="p-4">
+                            <div class="grid grid-cols-12 gap-4 mb-4">
+                                <!-- Last Update -->
+                                <div class="col-span-3 text-center">
+                                    <div class="text-sm text-gray-500">آخرین پیگیری</div>
+                                    <div class="text-base mt-1">${caseItem.lastUpdate || 'بدون پیگیری'}</div>
+                                </div>
+                                
+                                <!-- Lawyer Name -->
+                                <div class="col-span-6 text-center">
+                                    <div class="text-sm text-gray-500">وکیل</div>
+                                    <div class="text-base mt-1">${caseItem.lawyerName || '-'}</div>
+                                </div>
+                                
+                                <!-- Project Status -->
+                                <div class="col-span-3 text-center">
+                                    <div class="text-sm text-gray-500">وضعیت پرونده</div>
+                                    <div class="text-base mt-1">${getStatusText(caseItem.status)}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- View More Button -->
+                            <button 
+                                onclick="viewCaseDetails('${caseItem.id}')" 
+                                class="w-full py-2 px-4 bg-black hover:bg-gray-800 text-white rounded-[12px] transition duration-200 active:underline"
+                            >
+                                اطلاعات بیشتر
+                            </button>
+                        </div>
+                    </div>
+                `;
+                mainContent.insertAdjacentHTML('beforeend', caseHTML);
+            });
+        }
+
+        // Helper function to convert status value to display text
+        function getStatusText(status) {
+            const statusMap = {
+                'initial-review': 'بررسی اولیه',
+                'contract': 'عقد قرارداد',
+                'defense': 'دفاعیه',
+                'final': 'اتمام'
+            };
+            return statusMap[status] || status;
+        }
+
+        // View case details
+        function viewCaseDetails(id) {
+            // Store the case ID in localStorage
+            localStorage.setItem('currentCaseId', id);
+            // Navigate to addCase.html
+            window.location.href = 'addCase.html';
+        }
+
+        // Add new case
+        function addNewCase() {
+            // Clear all form-related data from localStorage
+            localStorage.removeItem('currentCaseId');
+            localStorage.removeItem('caseTitle');
+            localStorage.removeItem('contractAmount');
+            localStorage.removeItem('percentage');
+            localStorage.removeItem('status');
+            localStorage.removeItem('trackings');
+            localStorage.removeItem('received');
+            localStorage.removeItem('files');
+            
+            // Navigate to addCase.html
+            window.location.href = 'addCase.html';
+        }
+
+        // Toggle logout overlay
+        function toggleLogoutOverlay() {
+            const overlay = document.getElementById('logoutOverlay');
+            const overlayContent = document.getElementById('logoutOverlayContent');
+            
+            if (overlay.classList.contains('hidden')) {
+                // Show overlay
+                overlay.classList.remove('hidden');
+                // Trigger reflow
+                overlay.offsetHeight;
+                // Add opacity
+                overlay.classList.add('bg-opacity-50');
+                // Slide in content
+                overlayContent.classList.remove('translate-y-[100vh]');
+            } else {
+                // Slide out content
+                overlayContent.classList.add('translate-y-[100vh]');
+                // Remove opacity
+                overlay.classList.remove('bg-opacity-50');
+                // Hide overlay after transition
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 500);
+            }
+        }
+
+        // Logout
+        function logout() {
+            toggleLogoutOverlay();
+        }
+
+        // Confirm logout
+        function confirmLogout() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userPhone');
+            window.location.href = 'loginPage.html';
+        }
+
+        // Load cases when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUserInfo();
+            loadCases();
+        });
+
+        function toggleOverlay() {
+            const overlay = document.getElementById('overlay');
+            const overlayContent = document.getElementById('overlayContent');
+            
+            if (overlay.classList.contains('hidden')) {
+                // Show overlay
+                overlay.classList.remove('hidden');
+                // Trigger reflow
+                overlay.offsetHeight;
+                // Add opacity
+                overlay.classList.add('bg-opacity-50');
+                // Slide in content
+                overlayContent.classList.remove('translate-y-[100vh]');
+            } else {
+                // Slide out content
+                overlayContent.classList.add('translate-y-[100vh]');
+                // Remove opacity
+                overlay.classList.remove('bg-opacity-50');
+                // Hide overlay after transition
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 500);
+            }
+        }
+
+        function toggleCaseDetailsOverlay() {
+            const overlay = document.getElementById('caseDetailsOverlay');
+            const overlayContent = document.getElementById('caseDetailsContent');
+            
+            if (overlay.classList.contains('hidden')) {
+                overlay.classList.remove('hidden');
+                overlay.offsetHeight;
+                overlay.classList.add('bg-opacity-50');
+                overlayContent.classList.remove('translate-y-[100vh]');
+            } else {
+                overlayContent.classList.add('translate-y-[100vh]');
+                overlay.classList.remove('bg-opacity-50');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 500);
+            }
+        }
+
+        function viewFile(id) {
+            const cases = JSON.parse(localStorage.getItem('cases') || '[]');
+            const file = cases.flatMap(c => c.files || []).find(f => f.id === id);
+            
+            if (file) {
+                // Create a temporary link element
+                const link = document.createElement('a');
+                link.href = file.data;
+                link.target = '_blank';
+                link.download = file.title;
+                
+                // For PDFs, open in new tab
+                if (file.type === 'application/pdf') {
+                    window.open(file.data, '_blank');
+                } else {
+                    // For images, trigger download
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
+        }
+
+        // Handle click outside overlay
+        function handleOverlayClick(event) {
+            const overlay = document.getElementById('logoutOverlay');
+            const overlayContent = document.getElementById('logoutOverlayContent');
+            
+            // Check if the click was on the overlay background (not the content)
+            if (event.target === overlay) {
+                toggleLogoutOverlay();
+            }
+        }
+    </script>
+</body>
+</html>
