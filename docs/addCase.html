@@ -497,6 +497,52 @@
     <script src="https://unpkg.com/@material/persian-datepicker@latest/dist/js/persian-datepicker.min.js"></script>
 
     <script>
+        // Function to save case to localStorage
+        function saveCase(caseData) {
+            // Get existing cases or initialize empty array
+            let cases = JSON.parse(localStorage.getItem('cases') || '[]');
+            
+            // Add new case with unique ID and timestamp
+            const newCase = {
+                id: Date.now().toString(),
+                ...caseData,
+                createdAt: new Date().toISOString(),
+                lastUpdate: new Date().toISOString()
+            };
+            
+            cases.push(newCase);
+            
+            // Save back to localStorage
+            localStorage.setItem('cases', JSON.stringify(cases));
+            
+            // Redirect to panel page
+            window.location.href = 'panelFirstPage.html';
+        }
+
+        // Handle form submission
+        document.getElementById('caseForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const caseData = {
+                title: document.getElementById('caseTitle').value,
+                lawyerName: document.getElementById('lawyerName').value,
+                contractAmount: document.getElementById('contractAmount').value,
+                percentage: document.getElementById('percentage').value,
+                status: 'در حال انجام', // Default status
+                type: 'جنایی' // Default type
+            };
+            
+            saveCase(caseData);
+        });
+
+        // Check if user is logged in
+        window.onload = function() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (!isLoggedIn) {
+                window.location.href = 'loginPage.html';
+            }
+        }
+
         // Check if user is logged in
         if (!localStorage.getItem('isLoggedIn')) {
             window.location.href = 'loginPage.html';
